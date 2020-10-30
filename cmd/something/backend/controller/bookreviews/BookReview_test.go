@@ -278,9 +278,6 @@ var _ = Describe("Server", func() {
 			Expect(bookReview).Should(BeNil())
 		})
 		It("return an 404 status code in non existing bookReview", func() {
-			newBookReview, _ := domain.NewBookReview("f73cbfc4-1971-49d6-8964-d696b4e2e220", "abc", 1, bookID, userID)
-			bookReviewRepo.Save(newBookReview)
-
 			req, err := http.NewRequest(http.MethodDelete, server.URL+"/book/reviews/427bfa5b-9144-4f1c-8069-b42307192d65", nil)
 			client := &http.Client{}
 			resp, err := client.Do(req)
