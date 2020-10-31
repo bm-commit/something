@@ -22,5 +22,5 @@ func RegisterRoutes(
 	router.GET("/book/reviews/:review_id", GetBookReviewController(finder))
 	router.PATCH("/book/reviews/:review_id", m.TokenAuthMiddleware(accessSecret), PatchController(updater))
 	router.PUT("/books/:id/reviews/:review_id", m.TokenAuthMiddleware(accessSecret), PutController(creator))
-	router.DELETE("/book/reviews/:review_id", DeleteBookReviewController(delete))
+	router.DELETE("/book/reviews/:review_id", m.TokenAuthStaffMiddleware(accessSecret), DeleteBookReviewController(delete))
 }

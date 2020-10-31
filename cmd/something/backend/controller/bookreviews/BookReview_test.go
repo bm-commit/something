@@ -156,7 +156,7 @@ var _ = Describe("Server", func() {
 			}
 			jsonReq, err := json.Marshal(bookReview)
 
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "default", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(
@@ -175,7 +175,7 @@ var _ = Describe("Server", func() {
 			Expect(createdReview).ShouldNot(BeNil())
 		})
 		It("Returns an 400 status code with an invalid uuid", func() {
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "default", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(
@@ -189,7 +189,6 @@ var _ = Describe("Server", func() {
 			Expect(resp.StatusCode).Should(Equal(http.StatusBadRequest))
 		})
 	})
-
 	Context("When PATCH request by ID is sent to /book/reviews/:review_id", func() {
 		It("modify an existing review", func() {
 			newBookReview, _ := domain.NewBookReview("47bb4bed-e1ee-413a-85ed-2cc4c598e562", "abc", 1, bookID, userID)
@@ -200,7 +199,7 @@ var _ = Describe("Server", func() {
 			}
 			jsonReq, err := json.Marshal(fieldsToModify)
 
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "default", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(
@@ -237,7 +236,7 @@ var _ = Describe("Server", func() {
 			}
 			jsonReq, err := json.Marshal(fieldsToModify)
 
-			generateAuth, err := jwt.CreateToken("55a5cd53-6d6d-46f1-9eb0-689435c269f0", tokenParams)
+			generateAuth, err := jwt.CreateToken("55a5cd53-6d6d-46f1-9eb0-689435c269f0", "default", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(
@@ -259,16 +258,18 @@ var _ = Describe("Server", func() {
 			Expect(string(body)).To(MatchJSON(`{"error":"unauthorized"}`))
 		})
 	})
-
 	Context("When DELETE request by ID is sent to /book/reviews/:review_id", func() {
 		It("delete an existing book review", func() {
 			newBookReview, _ := domain.NewBookReview("f73cbfc4-1971-49d6-8964-d696b4e2e220", "abc", 1, bookID, userID)
 			bookReviewRepo.Save(newBookReview)
 
+			generateAuth, err := jwt.CreateToken(userID, "staff", tokenParams)
+			Expect(err).ShouldNot(HaveOccurred())
 			req, err := http.NewRequest(
 				http.MethodDelete,
 				server.URL+"/book/reviews/f73cbfc4-1971-49d6-8964-d696b4e2e220",
 				nil)
+			req.Header.Set("Authorization", "Bearer "+generateAuth.AccessToken)
 			client := &http.Client{}
 			resp, err := client.Do(req)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -278,11 +279,38 @@ var _ = Describe("Server", func() {
 			Expect(bookReview).Should(BeNil())
 		})
 		It("return an 404 status code in non existing bookReview", func() {
-			req, err := http.NewRequest(http.MethodDelete, server.URL+"/book/reviews/427bfa5b-9144-4f1c-8069-b42307192d65", nil)
+			generateAuth, err := jwt.CreateToken(userID, "staff", tokenParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			req, err := http.NewRequest(
+				http.MethodDelete,
+				server.URL+"/book/reviews/427bfa5b-9144-4f1c-8069-b42307192d65",
+				nil,
+			)
+			req.Header.Set("Authorization", "Bearer "+generateAuth.AccessToken)
 			client := &http.Client{}
 			resp, err := client.Do(req)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusNotFound))
+		})
+		It("return an 401 status code in not admin user", func() {
+			bookReviewID := "f73cbfc4-1971-49d6-8964-d696b4e2e220"
+			newBookReview, _ := domain.NewBookReview(bookReviewID, "abc", 1, bookID, userID)
+			bookReviewRepo.Save(newBookReview)
+
+			generateAuth, err := jwt.CreateToken(userID, "default", tokenParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			req, err := http.NewRequest(
+				http.MethodDelete,
+				server.URL+"/book/reviews/"+bookReviewID,
+				nil,
+			)
+			req.Header.Set("Authorization", "Bearer "+generateAuth.AccessToken)
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.StatusCode).Should(Equal(http.StatusUnauthorized))
 		})
 	})
 })

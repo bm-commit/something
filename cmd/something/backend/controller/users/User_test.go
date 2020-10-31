@@ -94,7 +94,8 @@ var _ = Describe("Server", func() {
 							"id":"` + newUser.ID + `",
 							"name":"` + newUser.Name + `",
 							"username":"` + newUser.Username + `",
-							"email":"` + newUser.Email + `" ,
+							"email":"` + newUser.Email + `",
+							"role":"` + newUser.Role + `" ,
 							"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
 						}
 					]
@@ -122,7 +123,8 @@ var _ = Describe("Server", func() {
 						"id":"` + newUser.ID + `",
 						"name":"` + newUser.Name + `",
 						"username":"` + newUser.Username + `",
-						"email":"` + newUser.Email + `" ,
+						"email":"` + newUser.Email + `",
+						"role":"` + newUser.Role + `" ,
 						"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
 					}
 			}`))
@@ -253,7 +255,7 @@ var _ = Describe("Server", func() {
 			}
 			jsonReq, err := json.Marshal(fieldsToModify)
 
-			generateAuth, err := jwt.CreateToken(newUser.ID, tokenParams)
+			generateAuth, err := jwt.CreateToken(newUser.ID, newUser.Role, tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			req, err := http.NewRequest(
 				http.MethodPatch,
@@ -289,7 +291,7 @@ var _ = Describe("Server", func() {
 				"secret-pass-1")
 			userRepo.Save(newUser)
 
-			generateAuth, err := jwt.CreateToken(newUser.ID, tokenParams)
+			generateAuth, err := jwt.CreateToken(newUser.ID, newUser.Role, tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(
@@ -308,7 +310,7 @@ var _ = Describe("Server", func() {
 		It("return an 404 status code in non existing user", func() {
 			userID := "9b6848af-5e94-44ad-b59c-960c223ee182"
 
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "default", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(

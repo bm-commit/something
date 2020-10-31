@@ -23,8 +23,8 @@ func RegisterRoutes(
 	{
 		booksRouter.GET("/", GetBooksController(finder))
 		booksRouter.GET("/:id", GetBookController(finder))
-		booksRouter.PUT("/:id", m.TokenAuthMiddleware(accessSecret), PutController(creator))
-		booksRouter.PATCH("/:id", m.TokenAuthMiddleware(accessSecret), PatchController(update))
-		booksRouter.DELETE("/:id", m.TokenAuthMiddleware(accessSecret), DeleteBookController(deletor))
+		booksRouter.PUT("/:id", m.TokenAuthStaffMiddleware(accessSecret), PutController(creator))
+		booksRouter.PATCH("/:id", m.TokenAuthStaffMiddleware(accessSecret), PatchController(update))
+		booksRouter.DELETE("/:id", m.TokenAuthStaffMiddleware(accessSecret), DeleteBookController(deletor))
 	}
 }

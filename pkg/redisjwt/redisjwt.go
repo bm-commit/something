@@ -34,6 +34,7 @@ type TokenDetails struct {
 type AccessDetails struct {
 	AccessUUID string
 	UserID     string
+	Role       string
 }
 
 type redisAuth struct {
@@ -75,7 +76,7 @@ func (r *redisAuth) DeleteAuth(givenUUID string) (int64, error) {
 }
 
 // CreateToken ...
-func CreateToken(userid string, params *TokenParams) (*TokenDetails, error) {
+func CreateToken(userid, role string, params *TokenParams) (*TokenDetails, error) {
 
 	td := &TokenDetails{}
 
@@ -88,7 +89,7 @@ func CreateToken(userid string, params *TokenParams) (*TokenDetails, error) {
 	var err error
 	//Creating Access Token
 	atClaims := jwt.MapClaims{}
-	atClaims["authorized"] = true
+	atClaims["role"] = role
 	atClaims["access_uuid"] = td.AccessUUID
 	atClaims["user_id"] = userid
 	atClaims["exp"] = td.AtExpires
@@ -126,9 +127,14 @@ func ExtractTokenMetadata(r *http.Request, accessSecret string) (*AccessDetails,
 		if !ok {
 			return nil, err
 		}
+		role, ok := claims["role"].(string)
+		if !ok {
+			return nil, err
+		}
 		return &AccessDetails{
 			AccessUUID: accessUUID,
 			UserID:     userID,
+			Role:       role,
 		}, nil
 	}
 	return nil, err

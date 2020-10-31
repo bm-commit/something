@@ -12,7 +12,7 @@ type User struct {
 	Username  string
 	Email     string
 	Password  string
-	IsAdmin   bool
+	Role      string
 	CreatedOn time.Time
 }
 
@@ -21,10 +21,10 @@ func NewUser(id, name, username, email, password string) (*User, error) {
 	return &User{
 		ID:        id,
 		Name:      name,
-		Username:  username, // strings.TrimSpace(strings.ToLower(username))
-		Email:     strings.ToLower(email),
+		Username:  strings.TrimSpace(strings.ToLower(username)),
+		Email:     strings.TrimSpace(strings.ToLower(email)),
 		Password:  password,
-		IsAdmin:   false,
+		Role:      "default",
 		CreatedOn: time.Now(),
 	}, nil
 }

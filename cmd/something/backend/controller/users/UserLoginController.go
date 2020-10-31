@@ -40,7 +40,7 @@ func LoginController(usecase login.Service, tokenParams *jwt.TokenParams) func(c
 			})
 			return
 		}
-		ts, err := jwt.CreateToken(user.ID, tokenParams)
+		ts, err := jwt.CreateToken(user.ID, user.Role, tokenParams)
 		if err != nil {
 			c.JSON(http.StatusUnprocessableEntity, err.Error())
 			return

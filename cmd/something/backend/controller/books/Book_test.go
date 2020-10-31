@@ -100,7 +100,6 @@ var _ = Describe("Server", func() {
 				}`))
 		})
 	})
-
 	Context("When GET request by ID is sent to /books/:id", func() {
 		It("Returns an existing book by id", func() {
 			newBook, _ := domain.NewBook("90cbf21e-f1db-473d-b7b2-6ad77a4ea359", "title", "desc", "author", "genre", 1)
@@ -152,7 +151,7 @@ var _ = Describe("Server", func() {
 			}
 			jsonReq, err := json.Marshal(book)
 
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "staff", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			req, err := http.NewRequest(
 				http.MethodPut,
@@ -170,7 +169,7 @@ var _ = Describe("Server", func() {
 			Expect(createdBook).ShouldNot(BeNil())
 		})
 		It("Returns an 400 status code with an invalid uuid", func() {
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "staff", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			req, err := http.NewRequest(http.MethodPut, server.URL+"/books/1", nil)
 			req.Header.Set("Authorization", "Bearer "+generateAuth.AccessToken)
@@ -191,7 +190,7 @@ var _ = Describe("Server", func() {
 			}
 			jsonReq, err := json.Marshal(fieldsToModify)
 
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "staff", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(
@@ -221,13 +220,12 @@ var _ = Describe("Server", func() {
 			Expect(book).Should(BeEquivalentTo(updatedBook))
 		})
 	})
-
 	Context("When DELETE request by ID is sent to /books/:id", func() {
 		It("delete an existing book", func() {
 			newBook, _ := domain.NewBook("567fb602-5533-42a3-8b47-68b474b53e45", "title", "desc", "author", "genre", 1)
 			bookRepo.Save(newBook)
 
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "staff", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(http.MethodDelete, server.URL+"/books/567fb602-5533-42a3-8b47-68b474b53e45", nil)
@@ -241,7 +239,7 @@ var _ = Describe("Server", func() {
 			Expect(book).Should(BeNil())
 		})
 		It("return an 404 status code in non existing book", func() {
-			generateAuth, err := jwt.CreateToken(userID, tokenParams)
+			generateAuth, err := jwt.CreateToken(userID, "staff", tokenParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			req, err := http.NewRequest(

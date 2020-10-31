@@ -11,6 +11,7 @@ type UserResponse struct {
 	Name      string    `json:"name"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
+	Role      string    `json:"role"`
 	CreatedOn time.Time `json:"created_on"`
 }
 
@@ -21,6 +22,7 @@ func NewUserResponse(User *domain.User) *UserResponse {
 		Name:      User.Name,
 		Username:  User.Username,
 		Email:     User.Email,
+		Role:      User.Role,
 		CreatedOn: User.CreatedOn,
 	}
 }
