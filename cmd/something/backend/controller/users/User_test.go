@@ -142,7 +142,6 @@ var _ = Describe("Server", func() {
 			Expect(string(body)).To(MatchJSON(`{"error":"user not found"}`))
 		})
 	})
-
 	Context("When PUT request by ID is sent to /users/:id", func() {
 		It("Return an 201 status code", func() {
 			user := map[string]interface{}{
@@ -238,7 +237,6 @@ var _ = Describe("Server", func() {
 			Expect(string(body)).To(MatchJSON(`{"error":"username already in use"}`))
 		})
 	})
-
 	Context("When PATCH request by ID is sent to /users/:id", func() {
 		It("modify an existing user", func() {
 			newUser, _ := domain.NewUser(
@@ -282,7 +280,6 @@ var _ = Describe("Server", func() {
 			Expect(user).Should(BeEquivalentTo(updatedUser))
 		})
 	})
-
 	Context("When DELETE request by ID is sent to /users/:id", func() {
 		It("delete an existing user", func() {
 			newUser, _ := domain.NewUser(
@@ -328,7 +325,6 @@ var _ = Describe("Server", func() {
 			Expect(string(body)).To(MatchJSON(`{"error":"user not found"}`))
 		})
 	})
-
 	Context("When POST request is sent to /login", func() {
 		It("authenticate existing user", func() {
 			hash, _ := cryptoRepo.Hash("secret-pass-1")

@@ -30,6 +30,11 @@ import (
 	userUpdate "something/internal/users/application/update"
 	userPersistance "something/internal/users/infraestructure/persistence"
 
+	"something/cmd/something/backend/controller/userfollow"
+	userFollowFinder "something/internal/userfollow/application/find"
+	userFollow "something/internal/userfollow/application/followers"
+	userFollowPersistance "something/internal/userfollow/infraestructure/persistence"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -70,6 +75,7 @@ func setupServer() *gin.Engine {
 
 	cryptoRepo := crypto.NewBcrypt()
 
+	// Books
 	inMemoryBookRepo := bookPersistance.NewInMemoryBookRepository()
 	bookFind := bookFinder.NewService(inMemoryBookRepo)
 	bookCreator := bookCreate.NewService(inMemoryBookRepo)
@@ -77,6 +83,7 @@ func setupServer() *gin.Engine {
 	bookUpdater := bookUpdate.NewService(inMemoryBookRepo)
 	books.RegisterRoutes(bookFind, bookCreator, bookUpdater, bookDeletor, tokenParams.AccessSecret, router)
 
+	// Book reviews
 	inMemoryBookReviewRepo := persistence.NewInMemoryBookReviewsRepository()
 	bookReviewFinder := find.NewService(inMemoryBookReviewRepo, inMemoryBookRepo)
 	bookReviewCreator := create.NewService(inMemoryBookReviewRepo)
@@ -84,6 +91,7 @@ func setupServer() *gin.Engine {
 	bookReviewDelete := delete.NewService(inMemoryBookReviewRepo)
 	bookreviews.RegisterRoutes(bookReviewFinder, bookReviewCreator, bookReviewUpdater, bookReviewDelete, tokenParams.AccessSecret, router)
 
+	// Users
 	inMemoryUserRepo := userPersistance.NewInMemoryUserRepository()
 	userFind := userFinder.NewService(inMemoryUserRepo)
 	userCreator := userCreate.NewService(inMemoryUserRepo, cryptoRepo)
@@ -92,6 +100,13 @@ func setupServer() *gin.Engine {
 	authLogin := login.NewService(inMemoryUserRepo, cryptoRepo)
 	users.RegisterRoutes(userFind, userCreator, userUpdater, userDeletor, authLogin, tokenParams, router)
 
+	// Users followers
+	inMemoryUserFollowRepo := userFollowPersistance.NewInMemoryUserFollowRepository()
+	userFollowFind := userFollowFinder.NewService(inMemoryUserFollowRepo, inMemoryUserRepo)
+	userFollower := userFollow.NewService(inMemoryUserFollowRepo, inMemoryUserRepo)
+	userfollow.RegisterRoutes(userFollowFind, userFollower, tokenParams, router)
+
+	// Health-check
 	healthcheck.RegisterRoutes(router)
 
 	return router
