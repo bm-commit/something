@@ -12,6 +12,7 @@ import (
 	"something/internal/bookreviews/application/update"
 	"something/internal/bookreviews/domain"
 	"something/internal/bookreviews/infraestructure/persistence"
+	bookFind "something/internal/books/application/find"
 	bookDomain "something/internal/books/domain"
 	bookPersistance "something/internal/books/infraestructure/persistence"
 	jwt "something/pkg/redisjwt"
@@ -38,11 +39,12 @@ func setupServer(
 	bookReviewRepo domain.BookReviewRepository,
 	bookRepo bookDomain.BookRepository) *gin.Engine {
 	router := gin.Default()
-	finder := find.NewService(bookReviewRepo, bookRepo)
+	finder := find.NewService(bookReviewRepo)
+	bookFinder := bookFind.NewService(bookRepo)
 	updater := update.NewService(bookReviewRepo)
 	creator := create.NewService(bookReviewRepo)
 	deletor := delete.NewService(bookReviewRepo)
-	RegisterRoutes(finder, creator, updater, deletor, tokenParams.AccessSecret, router)
+	RegisterRoutes(finder, bookFinder, creator, updater, deletor, tokenParams.AccessSecret, router)
 	return router
 }
 

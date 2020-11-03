@@ -3,6 +3,7 @@ package bookreviews
 import (
 	"net/http"
 	"something/internal/bookreviews/application/find"
+	bookFind "something/internal/books/application/find"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,11 +14,25 @@ type bookURLParameter struct {
 }
 
 // GetBookReviewsController ...
-func GetBookReviewsController(finder find.Service) func(c *gin.Context) {
+func GetBookReviewsController(finder find.Service, bookFinder bookFind.Service) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var param bookURLParameter
 		if err := c.ShouldBindUri(&param); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		_, err := bookFinder.FindBookByID(param.ID)
+		if err != nil {
+			if err.Error() == "book not found" {
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": err.Error(),
+				})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Something wrong happened, try again later ...",
+			})
 			return
 		}
 
