@@ -8,6 +8,7 @@ import (
 	"something/internal/userfollow/application/followers"
 	"something/internal/userfollow/domain"
 	"something/internal/userfollow/infraestructure/persistence"
+	userFind "something/internal/users/application/find"
 	userDomain "something/internal/users/domain"
 	userPersistence "something/internal/users/infraestructure/persistence"
 	"testing"
@@ -36,9 +37,10 @@ func setupServer(
 	userFollowRepo domain.UserFollowRepository,
 	userRepo userDomain.UserRepository) *gin.Engine {
 	router := gin.Default()
-	finder := find.NewService(userFollowRepo, userRepo)
-	follow := followers.NewService(userFollowRepo, userRepo)
-	RegisterRoutes(finder, follow, tokenParams, router)
+	userFinder := userFind.NewService(userRepo)
+	finder := find.NewService(userFollowRepo)
+	follow := followers.NewService(userFollowRepo)
+	RegisterRoutes(finder, userFinder, follow, tokenParams, router)
 	return router
 }
 

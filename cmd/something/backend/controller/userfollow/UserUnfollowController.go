@@ -3,12 +3,13 @@ package userfollow
 import (
 	"net/http"
 	"something/internal/userfollow/application/followers"
+	userFind "something/internal/users/application/find"
 
 	"github.com/gin-gonic/gin"
 )
 
 // UnfollowController ...
-func UnfollowController(uc followers.Service) func(c *gin.Context) {
+func UnfollowController(uc followers.Service, userFinder userFind.Service) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var param urlParameter
 		if err := c.ShouldBindUri(&param); err != nil {
@@ -27,7 +28,8 @@ func UnfollowController(uc followers.Service) func(c *gin.Context) {
 			c.Status(http.StatusBadRequest)
 			return
 		}
-		err := uc.Unfollow(userID.(string), param.ID)
+
+		_, err := userFinder.FindUserByID(param.ID)
 		if err != nil {
 			if err.Error() == "user not found" {
 				c.JSON(http.StatusNotFound, gin.H{
@@ -35,6 +37,14 @@ func UnfollowController(uc followers.Service) func(c *gin.Context) {
 				})
 				return
 			}
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Something wrong happened, try again later ...",
+			})
+			return
+		}
+
+		err = uc.Unfollow(userID.(string), param.ID)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Something wrong happened, try again later ...",
 			})
