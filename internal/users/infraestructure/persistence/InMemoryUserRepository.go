@@ -73,6 +73,11 @@ func (r *repository) Update(user *domain.User) error {
 	return nil
 }
 
+func (r *repository) UpdateInterests(userID, bookID, status string) error {
+	r.users[userID].Interests[bookID] = status
+	return nil
+}
+
 func (r *repository) Save(user *domain.User) error {
 	r.users[user.ID] = user
 	return nil

@@ -85,11 +85,11 @@ func setupServer() *gin.Engine {
 
 	// Book reviews
 	inMemoryBookReviewRepo := persistence.NewInMemoryBookReviewsRepository()
-	bookReviewFinder := find.NewService(inMemoryBookReviewRepo, inMemoryBookRepo)
+	bookReviewFinder := find.NewService(inMemoryBookReviewRepo)
 	bookReviewCreator := create.NewService(inMemoryBookReviewRepo)
 	bookReviewUpdater := update.NewService(inMemoryBookReviewRepo)
 	bookReviewDelete := delete.NewService(inMemoryBookReviewRepo)
-	bookreviews.RegisterRoutes(bookReviewFinder, bookReviewCreator, bookReviewUpdater, bookReviewDelete, tokenParams.AccessSecret, router)
+	bookreviews.RegisterRoutes(bookReviewFinder, bookFind, bookReviewCreator, bookReviewUpdater, bookReviewDelete, tokenParams.AccessSecret, router)
 
 	// Users
 	inMemoryUserRepo := userPersistance.NewInMemoryUserRepository()
@@ -98,13 +98,13 @@ func setupServer() *gin.Engine {
 	userUpdater := userUpdate.NewService(inMemoryUserRepo)
 	userDeletor := userDelete.NewService(inMemoryUserRepo)
 	authLogin := login.NewService(inMemoryUserRepo, cryptoRepo)
-	users.RegisterRoutes(userFind, userCreator, userUpdater, userDeletor, authLogin, tokenParams, router)
+	users.RegisterRoutes(userFind, bookFind, userCreator, userUpdater, userDeletor, authLogin, tokenParams, router)
 
 	// Users followers
 	inMemoryUserFollowRepo := userFollowPersistance.NewInMemoryUserFollowRepository()
-	userFollowFind := userFollowFinder.NewService(inMemoryUserFollowRepo, inMemoryUserRepo)
-	userFollower := userFollow.NewService(inMemoryUserFollowRepo, inMemoryUserRepo)
-	userfollow.RegisterRoutes(userFollowFind, userFollower, tokenParams, router)
+	userFollowFind := userFollowFinder.NewService(inMemoryUserFollowRepo)
+	userFollower := userFollow.NewService(inMemoryUserFollowRepo)
+	userfollow.RegisterRoutes(userFollowFind, userFind, userFollower, tokenParams, router)
 
 	// Health-check
 	healthcheck.RegisterRoutes(router)

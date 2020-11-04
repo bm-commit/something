@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	bookFind "something/internal/books/application/find"
+	bookDomain "something/internal/books/domain"
+	bookPersistence "something/internal/books/infraestructure/persistence"
 	"something/internal/users/application/create"
 	"something/internal/users/application/delete"
 	"something/internal/users/application/find"
@@ -37,26 +40,30 @@ func TestUserCheck(t *testing.T) {
 
 func setupServer(
 	userRepo domain.UserRepository,
+	bookRepo bookDomain.BookRepository,
 	crypto crypto.Crypto) *gin.Engine {
 	router := gin.Default()
 	finder := find.NewService(userRepo)
+	bookFinder := bookFind.NewService(bookRepo)
 	creator := create.NewService(userRepo, crypto)
 	updater := update.NewService(userRepo)
 	deleter := delete.NewService(userRepo)
 	authLogin := login.NewService(userRepo, crypto)
-	RegisterRoutes(finder, creator, updater, deleter, authLogin, tokenParams, router)
+	RegisterRoutes(finder, bookFinder, creator, updater, deleter, authLogin, tokenParams, router)
 	return router
 }
 
 var _ = Describe("Server", func() {
 	var server *httptest.Server
 	var userRepo domain.UserRepository
+	var bookRepo bookDomain.BookRepository
 	var cryptoRepo crypto.Crypto
 
 	BeforeEach(func() {
 		userRepo = persistence.NewInMemoryUserRepository()
+		bookRepo = bookPersistence.NewInMemoryBookRepository()
 		cryptoRepo = crypto.NewBcrypt()
-		server = httptest.NewServer(setupServer(userRepo, cryptoRepo))
+		server = httptest.NewServer(setupServer(userRepo, bookRepo, cryptoRepo))
 	})
 
 	AfterEach(func() {
@@ -280,6 +287,44 @@ var _ = Describe("Server", func() {
 			Expect(user).Should(BeEquivalentTo(updatedUser))
 		})
 	})
+
+	Context("When PATCH request is sent to /user/interests/:bookid", func() {
+		It("add book_id with reading status in user interests", func() {
+			newBook, _ := bookDomain.NewBook("6f870d20-98ab-4b51-bdc9-450c3db91ca0", "title", "desc", "author", "genre", 1)
+			bookRepo.Save(newBook)
+			newUser, _ := domain.NewUser(
+				"e936dfe3-770f-4ecb-b279-2540e0e7a06e",
+				"Susan",
+				"susan-01",
+				"susan@example.com",
+				"super-ultra-secure-password",
+			)
+			userRepo.Save(newUser)
+
+			bookToAdd := map[string]interface{}{
+				"status": "reading",
+			}
+			jsonReq, err := json.Marshal(bookToAdd)
+
+			generateAuth, err := jwt.CreateToken(newUser.ID, newUser.Role, tokenParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			req, err := http.NewRequest(
+				http.MethodPatch,
+				server.URL+"/user/interests/"+newBook.ID,
+				bytes.NewBuffer(jsonReq))
+			req.Header.Set("Content-Type", "application/json; charset=utf-8")
+			req.Header.Set("Authorization", "Bearer "+generateAuth.AccessToken)
+			client := &http.Client{}
+
+			resp, err := client.Do(req)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
+
+			user, _ := userRepo.FindByID(newUser.ID)
+			Expect(user.Interests).Should(HaveKeyWithValue(newBook.ID, "reading"))
+		})
+	})
+
 	Context("When DELETE request by ID is sent to /users/:id", func() {
 		It("delete an existing user", func() {
 			newUser, _ := domain.NewUser(

@@ -13,6 +13,7 @@ type User struct {
 	Email     string
 	Password  string
 	Role      string
+	Interests map[string]string
 	CreatedOn time.Time
 }
 
@@ -25,6 +26,7 @@ func NewUser(id, name, username, email, password string) (*User, error) {
 		Email:     strings.TrimSpace(strings.ToLower(email)),
 		Password:  password,
 		Role:      "default",
+		Interests: map[string]string{},
 		CreatedOn: time.Now(),
 	}, nil
 }

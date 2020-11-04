@@ -10,6 +10,7 @@ import (
 // Service ...
 type Service interface {
 	UpdateUserByID(*UserCommand) error
+	UpdateUserInterests(*UserInterestsCommand) error
 }
 
 type service struct {
@@ -46,5 +47,14 @@ func (s *service) UpdateUserByID(user *UserCommand) error {
 	updatedUser.CreatedOn = existingUser.CreatedOn
 
 	err = s.repository.Update(updatedUser)
+	return err
+}
+
+func (s *service) UpdateUserInterests(interestCommand *UserInterestsCommand) error {
+	err := s.repository.UpdateInterests(
+		interestCommand.UserID,
+		interestCommand.BookID,
+		interestCommand.Status,
+	)
 	return err
 }
