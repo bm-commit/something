@@ -90,3 +90,11 @@ func (r *repository) Delete(id string) error {
 	}
 	return nil
 }
+
+func (r *repository) DeleteInterest(userID, bookID string) error {
+	_, ok := r.users[userID].Interests[bookID]
+	if ok {
+		delete(r.users[userID].Interests, bookID)
+	}
+	return nil
+}

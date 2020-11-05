@@ -323,6 +323,71 @@ var _ = Describe("Server", func() {
 			user, _ := userRepo.FindByID(newUser.ID)
 			Expect(user.Interests).Should(HaveKeyWithValue(newBook.ID, "reading"))
 		})
+		It("return 404 status code if book_id not exists", func() {
+			bookID := "d3023d4d-86d6-4f42-b551-6ab9f1b060ed"
+			newUser, _ := domain.NewUser(
+				"e936dfe3-770f-4ecb-b279-2540e0e7a06e",
+				"Susan",
+				"susan-01",
+				"susan@example.com",
+				"super-ultra-secure-password",
+			)
+			userRepo.Save(newUser)
+
+			bookToAdd := map[string]interface{}{
+				"status": "reading",
+			}
+			jsonReq, err := json.Marshal(bookToAdd)
+
+			generateAuth, err := jwt.CreateToken(newUser.ID, newUser.Role, tokenParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			req, err := http.NewRequest(
+				http.MethodPatch,
+				server.URL+"/user/interests/"+bookID,
+				bytes.NewBuffer(jsonReq))
+			req.Header.Set("Content-Type", "application/json; charset=utf-8")
+			req.Header.Set("Authorization", "Bearer "+generateAuth.AccessToken)
+			client := &http.Client{}
+
+			resp, err := client.Do(req)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.StatusCode).Should(Equal(http.StatusNotFound))
+
+			body, err := ioutil.ReadAll(resp.Body)
+			defer resp.Body.Close()
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(string(body)).To(MatchJSON(`{"error": "book not found"}`))
+		})
+		It("delete book_id with reading status in user interests", func() {
+			newBook, _ := bookDomain.NewBook("6f870d20-98ab-4b51-bdc9-450c3db91ca0", "title", "desc", "author", "genre", 1)
+			bookRepo.Save(newBook)
+			newUser, _ := domain.NewUser(
+				"e936dfe3-770f-4ecb-b279-2540e0e7a06e",
+				"Susan",
+				"susan-01",
+				"susan@example.com",
+				"super-ultra-secure-password",
+			)
+			newUser.Interests[newBook.ID] = "reading"
+			userRepo.Save(newUser)
+
+			generateAuth, err := jwt.CreateToken(newUser.ID, newUser.Role, tokenParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			req, err := http.NewRequest(
+				http.MethodDelete,
+				server.URL+"/user/interests/"+newBook.ID,
+				nil)
+			req.Header.Set("Content-Type", "application/json; charset=utf-8")
+			req.Header.Set("Authorization", "Bearer "+generateAuth.AccessToken)
+			client := &http.Client{}
+
+			resp, err := client.Do(req)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
+
+			user, _ := userRepo.FindByID(newUser.ID)
+			Expect(user.Interests).ShouldNot(HaveKeyWithValue(newBook.ID, "reading"))
+		})
 	})
 
 	Context("When DELETE request by ID is sent to /users/:id", func() {

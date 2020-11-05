@@ -32,5 +32,6 @@ func RegisterRoutes(
 		usersRouter.DELETE("/:id", m.TokenAuthMiddleware(tokenParams.AccessSecret), DeleteUserController(deleter))
 	}
 	router.PATCH("/user/interests/:book_id", m.TokenAuthMiddleware(tokenParams.AccessSecret), InterestsPatchController(updater, bookFinder))
+	router.DELETE("/user/interests/:book_id", m.TokenAuthMiddleware(tokenParams.AccessSecret), InterestsDeleteController(deleter, bookFinder))
 	router.POST("/login", LoginController(login, tokenParams))
 }

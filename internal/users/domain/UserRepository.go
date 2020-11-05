@@ -10,4 +10,5 @@ type UserRepository interface {
 	UpdateInterests(string, string, string) error
 	Save(*User) error
 	Delete(string) error
+	DeleteInterest(string, string) error
 }

@@ -8,6 +8,7 @@ import (
 // Service ...
 type Service interface {
 	DeleteUserByID(id string) error
+	DeleteUserInterests(id, bookID string) error
 }
 
 type service struct {
@@ -25,5 +26,10 @@ func (s *service) DeleteUserByID(id string) error {
 		return errors.New("user not found")
 	}
 	err := s.repository.Delete(id)
+	return err
+}
+
+func (s *service) DeleteUserInterests(userID, bookID string) error {
+	err := s.repository.DeleteInterest(userID, bookID)
 	return err
 }
