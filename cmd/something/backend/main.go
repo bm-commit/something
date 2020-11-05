@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"something/cmd/something/backend/controller/healthcheck"
+	"something/config"
 	"something/pkg/crypto"
 	jwt "something/pkg/redisjwt"
 	"time"
@@ -65,18 +66,28 @@ func setupServer() *gin.Engine {
 	tokenParams := &jwt.TokenParams{
 		AccessSecret:  os.Getenv("ACCESS_SECRET"),
 		RefreshSecret: os.Getenv("REFRESH_SECRET"),
-		AccessTime:    time.Minute * 1,
-		RefreshTime:   time.Minute * 1,
+		AccessTime:    time.Hour * 24,
+		RefreshTime:   time.Hour * 24 * 7,
 	}
 
 	router := gin.Default()
 
 	router.Use(gin.Recovery())
 
+	// init database
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	client := config.ConnectBD(dbUser, dbPass, dbHost)
+
+	database := os.Getenv("DB_NAME")
+	dbClient := client.Database(database)
+
+	// init crypto
 	cryptoRepo := crypto.NewBcrypt()
 
 	// Books
-	inMemoryBookRepo := bookPersistance.NewInMemoryBookRepository()
+	inMemoryBookRepo := bookPersistance.NewMongoBookRepository(dbClient)
 	bookFind := bookFinder.NewService(inMemoryBookRepo)
 	bookCreator := bookCreate.NewService(inMemoryBookRepo)
 	bookDeletor := bookDelete.NewService(inMemoryBookRepo)
@@ -84,7 +95,7 @@ func setupServer() *gin.Engine {
 	books.RegisterRoutes(bookFind, bookCreator, bookUpdater, bookDeletor, tokenParams.AccessSecret, router)
 
 	// Book reviews
-	inMemoryBookReviewRepo := persistence.NewInMemoryBookReviewsRepository()
+	inMemoryBookReviewRepo := persistence.NewMongoBookReviewRepository(dbClient)
 	bookReviewFinder := find.NewService(inMemoryBookReviewRepo)
 	bookReviewCreator := create.NewService(inMemoryBookReviewRepo)
 	bookReviewUpdater := update.NewService(inMemoryBookReviewRepo)
@@ -92,7 +103,7 @@ func setupServer() *gin.Engine {
 	bookreviews.RegisterRoutes(bookReviewFinder, bookFind, bookReviewCreator, bookReviewUpdater, bookReviewDelete, tokenParams.AccessSecret, router)
 
 	// Users
-	inMemoryUserRepo := userPersistance.NewInMemoryUserRepository()
+	inMemoryUserRepo := userPersistance.NewMongoUsersRepository(dbClient)
 	userFind := userFinder.NewService(inMemoryUserRepo)
 	userCreator := userCreate.NewService(inMemoryUserRepo, cryptoRepo)
 	userUpdater := userUpdate.NewService(inMemoryUserRepo)
@@ -101,7 +112,7 @@ func setupServer() *gin.Engine {
 	users.RegisterRoutes(userFind, bookFind, userCreator, userUpdater, userDeletor, authLogin, tokenParams, router)
 
 	// Users followers
-	inMemoryUserFollowRepo := userFollowPersistance.NewInMemoryUserFollowRepository()
+	inMemoryUserFollowRepo := userFollowPersistance.NewMongoUserFollowRepository(dbClient)
 	userFollowFind := userFollowFinder.NewService(inMemoryUserFollowRepo)
 	userFollower := userFollow.NewService(inMemoryUserFollowRepo)
 	userfollow.RegisterRoutes(userFollowFind, userFind, userFollower, tokenParams, router)
