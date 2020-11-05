@@ -2,10 +2,13 @@ package users
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"something/config"
 	bookFind "something/internal/books/application/find"
 	bookDomain "something/internal/books/domain"
 	bookPersistence "something/internal/books/infraestructure/persistence"
@@ -59,14 +62,25 @@ var _ = Describe("Server", func() {
 	var bookRepo bookDomain.BookRepository
 	var cryptoRepo crypto.Crypto
 
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	client := config.ConnectBD(dbUser, dbPass, dbHost)
+
+	database := os.Getenv("TEST_DB_NAME")
+	dbClient := client.Database(database)
+
 	BeforeEach(func() {
-		userRepo = persistence.NewInMemoryUserRepository()
+		userRepo = persistence.NewMongoUsersRepository(dbClient)
 		bookRepo = bookPersistence.NewInMemoryBookRepository()
 		cryptoRepo = crypto.NewBcrypt()
 		server = httptest.NewServer(setupServer(userRepo, bookRepo, cryptoRepo))
 	})
 
 	AfterEach(func() {
+		if err := dbClient.Collection("users").Drop(context.TODO()); err != nil {
+			Expect(err).ShouldNot(HaveOccurred())
+		}
 		server.Close()
 	})
 
@@ -103,7 +117,7 @@ var _ = Describe("Server", func() {
 							"username":"` + newUser.Username + `",
 							"email":"` + newUser.Email + `",
 							"role":"` + newUser.Role + `" ,
-							"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
+							"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
 			}`))
@@ -132,7 +146,7 @@ var _ = Describe("Server", func() {
 						"username":"` + newUser.Username + `",
 						"email":"` + newUser.Email + `",
 						"role":"` + newUser.Role + `" ,
-						"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
+						"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 					}
 			}`))
 		})
@@ -281,9 +295,8 @@ var _ = Describe("Server", func() {
 				newUser.Email,
 				newUser.Password,
 			)
-			updatedUser.CreatedOn = newUser.CreatedOn
-
 			user, _ := userRepo.FindByID(newUser.ID)
+			updatedUser.CreatedOn = user.CreatedOn
 			Expect(user).Should(BeEquivalentTo(updatedUser))
 		})
 	})

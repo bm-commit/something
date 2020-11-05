@@ -27,6 +27,6 @@ func NewUser(id, name, username, email, password string) (*User, error) {
 		Password:  password,
 		Role:      "default",
 		Interests: map[string]string{},
-		CreatedOn: time.Now(),
+		CreatedOn: time.Now().UTC(),
 	}, nil
 }
