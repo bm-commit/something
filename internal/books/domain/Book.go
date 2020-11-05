@@ -22,6 +22,6 @@ func NewBook(id, title, description, author, genre string, pages int) (*Book, er
 		Author:      author,
 		Genre:       genre,
 		Pages:       pages,
-		CreatedOn:   time.Now(),
+		CreatedOn:   time.Now().UTC(),
 	}, nil
 }

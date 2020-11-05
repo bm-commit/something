@@ -2,10 +2,13 @@ package books
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"something/config"
 	"something/internal/books/application/create"
 	"something/internal/books/application/delete"
 	"something/internal/books/application/find"
@@ -50,12 +53,23 @@ var _ = Describe("Server", func() {
 	var server *httptest.Server
 	var bookRepo domain.BookRepository
 
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	client := config.ConnectBD(dbUser, dbPass, dbHost)
+
+	database := os.Getenv("TEST_DB_NAME")
+	dbClient := client.Database(database)
+
 	BeforeEach(func() {
-		bookRepo = persistence.NewInMemoryBookRepository()
+		bookRepo = persistence.NewMongoBookRepository(dbClient)
 		server = httptest.NewServer(setupServer(bookRepo))
 	})
 
 	AfterEach(func() {
+		if err := dbClient.Collection("books").Drop(context.TODO()); err != nil {
+			Expect(err).ShouldNot(HaveOccurred())
+		}
 		server.Close()
 	})
 
@@ -94,7 +108,7 @@ var _ = Describe("Server", func() {
 								"author":"` + newBook.Author + `",
 								"genre":"` + newBook.Genre + `",
 								"pages":` + strconv.Itoa(newBook.Pages) + ` ,
-								"created_on":"` + newBook.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
+								"created_on":"` + newBook.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 							}
 						]
 				}`))
@@ -123,7 +137,7 @@ var _ = Describe("Server", func() {
 							"author":"` + newBook.Author + `",
 							"genre":"` + newBook.Genre + `",
 							"pages":` + strconv.Itoa(newBook.Pages) + ` ,
-							"created_on":"` + newBook.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
+							"created_on":"` + newBook.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 				}`))
 		})
@@ -214,9 +228,9 @@ var _ = Describe("Server", func() {
 				newBook.Genre,
 				newBook.Pages,
 			)
-			updatedBook.CreatedOn = newBook.CreatedOn
 
 			book, _ := bookRepo.FindByID(newBook.ID)
+			updatedBook.CreatedOn = book.CreatedOn
 			Expect(book).Should(BeEquivalentTo(updatedBook))
 		})
 	})
