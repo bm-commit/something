@@ -1,9 +1,12 @@
 package userfollow
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"something/config"
 	"something/internal/userfollow/application/find"
 	"something/internal/userfollow/application/followers"
 	"something/internal/userfollow/domain"
@@ -49,13 +52,24 @@ var _ = Describe("Server", func() {
 	var userFollowRepo domain.UserFollowRepository
 	var userRepo userDomain.UserRepository
 
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	client := config.ConnectBD(dbUser, dbPass, dbHost)
+
+	database := os.Getenv("TEST_DB_NAME")
+	dbClient := client.Database(database)
+
 	BeforeEach(func() {
-		userFollowRepo = persistence.NewInMemoryUserFollowRepository()
+		userFollowRepo = persistence.NewMongoUserFollowRepository(dbClient)
 		userRepo = userPersistence.NewInMemoryUserRepository()
 		server = httptest.NewServer(setupServer(userFollowRepo, userRepo))
 	})
 
 	AfterEach(func() {
+		if err := dbClient.Collection("user_follows").Drop(context.TODO()); err != nil {
+			Expect(err).ShouldNot(HaveOccurred())
+		}
 		server.Close()
 	})
 
@@ -102,7 +116,7 @@ var _ = Describe("Server", func() {
 						{
 							"from":"` + userFollow.From + `",
 							"to":"` + userFollow.To + `",
-							"created_on":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
+							"created_on":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
 			}`))
@@ -150,7 +164,7 @@ var _ = Describe("Server", func() {
 						{
 							"from":"` + userFollow.From + `",
 							"to":"` + userFollow.To + `",
-							"created_on":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
+							"created_on":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
 			}`))

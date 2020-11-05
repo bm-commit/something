@@ -16,6 +16,6 @@ func NewUserFollow(from, to string) (*UserFollow, error) {
 	return &UserFollow{
 		From:      from,
 		To:        to,
-		CreatedOn: time.Now(),
+		CreatedOn: time.Now().UTC(),
 	}, nil
 }
