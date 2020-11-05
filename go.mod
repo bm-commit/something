@@ -13,6 +13,7 @@ require (
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3
 	github.com/twinj/uuid v1.0.0
+	go.mongodb.org/mongo-driver v1.4.3
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/sys v0.0.0-20201017003518-b09fb700fbb7 // indirect
 )
