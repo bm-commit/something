@@ -20,6 +20,6 @@ func NewBookReview(id, text string, rating int, bookID, userID string) (*BookRev
 		Rating:    rating,
 		BookID:    bookID,
 		UserID:    userID,
-		CreatedOn: time.Now(),
+		CreatedOn: time.Now().UTC(),
 	}, nil
 }

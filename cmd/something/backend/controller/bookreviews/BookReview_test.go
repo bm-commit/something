@@ -2,10 +2,13 @@ package bookreviews
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"something/config"
 	"something/internal/bookreviews/application/create"
 	"something/internal/bookreviews/application/delete"
 	"something/internal/bookreviews/application/find"
@@ -58,15 +61,26 @@ var _ = Describe("Server", func() {
 	var bookRepo bookDomain.BookRepository
 	var bookReviewRepo domain.BookReviewRepository
 
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	client := config.ConnectBD(dbUser, dbPass, dbHost)
+
+	database := os.Getenv("TEST_DB_NAME")
+	dbClient := client.Database(database)
+
 	BeforeEach(func() {
 		bookRepo = bookPersistance.NewInMemoryBookRepository()
 		defaultBook, _ := bookDomain.NewBook(bookID, "title", "description", "author", "genre", 1)
 		bookRepo.Save(defaultBook)
-		bookReviewRepo = persistence.NewInMemoryBookReviewsRepository()
+		bookReviewRepo = persistence.NewMongoBookReviewRepository(dbClient)
 		server = httptest.NewServer(setupServer(bookReviewRepo, bookRepo))
 	})
 
 	AfterEach(func() {
+		if err := dbClient.Collection("book_reviews").Drop(context.TODO()); err != nil {
+			Expect(err).ShouldNot(HaveOccurred())
+		}
 		server.Close()
 	})
 
@@ -103,7 +117,7 @@ var _ = Describe("Server", func() {
 							"rating":` + strconv.Itoa(newBookReview.Rating) + ` ,
 							"book_id":"` + newBookReview.BookID + `",
 							"user_id":"` + newBookReview.UserID + `",
-							"created_on":"` + newBookReview.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
+							"created_on":"` + newBookReview.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
 			}`))
@@ -132,7 +146,7 @@ var _ = Describe("Server", func() {
 						"rating":` + strconv.Itoa(newBookReview.Rating) + `,
 						"book_id":"` + newBookReview.BookID + `",
 						"user_id":"` + newBookReview.UserID + `",
-						"created_on":"` + newBookReview.CreatedOn.Format("2006-01-02T15:04:05.999999999Z07:00") + `"
+						"created_on":"` + newBookReview.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 					}
 			}`))
 		})
@@ -224,9 +238,9 @@ var _ = Describe("Server", func() {
 				bookID,
 				userID,
 			)
-			updatedBookReview.CreatedOn = newBookReview.CreatedOn
 
 			bookReview, _ := bookReviewRepo.FindByID(newBookReview.ID)
+			updatedBookReview.CreatedOn = bookReview.CreatedOn
 			Expect(bookReview).Should(BeEquivalentTo(updatedBookReview))
 		})
 		It("Returns an 401 status code with not review owner", func() {
