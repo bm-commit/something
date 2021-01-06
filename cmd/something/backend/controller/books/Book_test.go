@@ -73,9 +73,9 @@ var _ = Describe("Server", func() {
 		server.Close()
 	})
 
-	Context("When GET request is sent to /books/", func() {
+	Context("When GET request is sent to /books", func() {
 		It("Returns null data if not exists books", func() {
-			resp, err := http.Get(server.URL + "/books/")
+			resp, err := http.Get(server.URL + "/books")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
@@ -89,7 +89,7 @@ var _ = Describe("Server", func() {
 			newBook, _ := domain.NewBook("4c881080-710f-458a-8ec3-058154c47794", "title", "desc", "author", "genre", 1)
 			bookRepo.Save(newBook)
 
-			resp, err := http.Get(server.URL + "/books/")
+			resp, err := http.Get(server.URL + "/books")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 

@@ -25,7 +25,7 @@ func RegisterRoutes(
 	router *gin.Engine) {
 	usersRouter := router.Group("/users")
 	{
-		usersRouter.GET("/", GetUsersController(finder))
+		usersRouter.GET("", GetUsersController(finder))
 		usersRouter.GET("/:id", GetUserController(finder))
 		usersRouter.PUT("/:id", RegisterController(creator))
 		usersRouter.PATCH("/:id", m.TokenAuthMiddleware(tokenParams.AccessSecret), PatchController(updater))

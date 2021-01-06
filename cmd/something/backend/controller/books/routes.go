@@ -21,7 +21,7 @@ func RegisterRoutes(
 	router *gin.Engine) {
 	booksRouter := router.Group("/books")
 	{
-		booksRouter.GET("/", GetBooksController(finder))
+		booksRouter.GET("", GetBooksController(finder))
 		booksRouter.GET("/:id", GetBookController(finder))
 		booksRouter.PUT("/:id", m.TokenAuthStaffMiddleware(accessSecret), PutController(creator))
 		booksRouter.PATCH("/:id", m.TokenAuthStaffMiddleware(accessSecret), PatchController(update))
