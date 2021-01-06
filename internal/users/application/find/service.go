@@ -9,6 +9,7 @@ import (
 type Service interface {
 	FindUsers() ([]*application.UserResponse, error)
 	FindUserByID(id string) (*application.UserResponse, error)
+	FindUserByUsername(username string) (*application.UserResponse, error)
 }
 
 type service struct {
@@ -30,6 +31,14 @@ func (s *service) FindUsers() ([]*application.UserResponse, error) {
 
 func (s *service) FindUserByID(id string) (*application.UserResponse, error) {
 	user, err := s.repository.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return application.NewUserResponse(user), nil
+}
+
+func (s *service) FindUserByUsername(username string) (*application.UserResponse, error) {
+	user, err := s.repository.FindByUsername(username)
 	if err != nil {
 		return nil, err
 	}

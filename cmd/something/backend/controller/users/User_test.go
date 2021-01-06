@@ -84,9 +84,9 @@ var _ = Describe("Server", func() {
 		server.Close()
 	})
 
-	Context("When GET request is sent to /users/", func() {
+	Context("When GET request is sent to /users", func() {
 		It("Returns null data if not exists users", func() {
-			resp, err := http.Get(server.URL + "/users/")
+			resp, err := http.Get(server.URL + "/users")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
@@ -99,7 +99,7 @@ var _ = Describe("Server", func() {
 			newUser, _ := domain.NewUser("6adbcea4-4fd4-45eb-8803-6c8474ac663a", "bob", "bob", "bob@mail.com", "bob123")
 			userRepo.Save(newUser)
 
-			resp, err := http.Get(server.URL + "/users/")
+			resp, err := http.Get(server.URL + "/users")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
