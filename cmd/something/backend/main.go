@@ -36,6 +36,7 @@ import (
 	userFollow "something/internal/userfollow/application/followers"
 	userFollowPersistance "something/internal/userfollow/infraestructure/persistence"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -73,6 +74,7 @@ func setupServer() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(gin.Recovery())
+	router.Use(cors.Default())
 
 	// init database
 	dbHost := os.Getenv("DB_HOST")
