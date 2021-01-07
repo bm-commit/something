@@ -85,7 +85,7 @@ var _ = Describe("Server", func() {
 	})
 
 	Context("When GET request is sent to /books/:id/reviews", func() {
-		It("Returns null data if not exists reviews", func() {
+		It("Returns empty array data if not exists reviews", func() {
 			resp, err := http.Get(server.URL + "/books/" + bookID + "/reviews")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
@@ -93,7 +93,7 @@ var _ = Describe("Server", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 		It("Returns an existing books review", func() {
 			newBookReview, _ := domain.NewBookReview("1", "abc", 1, bookID, userID)

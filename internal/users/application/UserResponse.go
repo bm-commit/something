@@ -29,7 +29,7 @@ func NewUserResponse(User *domain.User) *UserResponse {
 
 // NewUsersResponse ...
 func NewUsersResponse(Users []*domain.User) []*UserResponse {
-	var usersResponse []*UserResponse
+	usersResponse := []*UserResponse{}
 	for _, user := range Users {
 		usersResponse = append(usersResponse, NewUserResponse(user))
 	}

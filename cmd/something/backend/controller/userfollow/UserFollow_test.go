@@ -74,7 +74,7 @@ var _ = Describe("Server", func() {
 	})
 
 	Context("When GET request is sent to /users/:id/followers", func() {
-		It("Returns null data if not exists followers", func() {
+		It("Returns empty array if not exists followers", func() {
 			newUser, _ := userDomain.NewUser(
 				"8d4eb934-8116-4b2f-bd9d-2b6134a6a6f9",
 				"dante", "dante06", "dante@gmail.com",
@@ -88,7 +88,7 @@ var _ = Describe("Server", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 		It("Returns an existing follower", func() {
 			newUser, _ := userDomain.NewUser(
@@ -124,7 +124,7 @@ var _ = Describe("Server", func() {
 	})
 
 	Context("When GET request is sent to /users/:id/following", func() {
-		It("Returns null data if not exists following", func() {
+		It("Returns empty array if not exists following", func() {
 			newUser, _ := userDomain.NewUser(
 				"1b995593-812f-411e-ad6f-8bd4ff22fb98",
 				"dante", "dante06", "dante@gmail.com",
@@ -138,7 +138,7 @@ var _ = Describe("Server", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 		It("Returns an existing following", func() {
 			newUser, _ := userDomain.NewUser(

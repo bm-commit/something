@@ -23,7 +23,7 @@ func newFollowResponse(uf *domain.UserFollow) *UserFollowResponse {
 
 // NewFollowsResponse ...
 func NewFollowsResponse(follows []*domain.UserFollow) []*UserFollowResponse {
-	var userFollowResponse []*UserFollowResponse
+	userFollowResponse := []*UserFollowResponse{}
 	for _, follow := range follows {
 		userFollowResponse = append(userFollowResponse, newFollowResponse(follow))
 	}

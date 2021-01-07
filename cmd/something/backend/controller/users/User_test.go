@@ -85,7 +85,7 @@ var _ = Describe("Server", func() {
 	})
 
 	Context("When GET request is sent to /users", func() {
-		It("Returns null data if not exists users", func() {
+		It("Returns empty array if not exists users", func() {
 			resp, err := http.Get(server.URL + "/users")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
@@ -93,7 +93,7 @@ var _ = Describe("Server", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 		It("Returns an existing user", func() {
 			newUser, _ := domain.NewUser("6adbcea4-4fd4-45eb-8803-6c8474ac663a", "bob", "bob", "bob@mail.com", "bob123")

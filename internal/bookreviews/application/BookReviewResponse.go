@@ -30,7 +30,7 @@ func NewBookReviewResponse(bookReview *domain.BookReview) *BookReviewResponse {
 
 // NewReviewsResponse ...
 func NewReviewsResponse(bookReviews []*domain.BookReview) []*BookReviewResponse {
-	var bookReviewsResponse []*BookReviewResponse
+	bookReviewsResponse := []*BookReviewResponse{}
 	for _, review := range bookReviews {
 		bookReviewsResponse = append(bookReviewsResponse, NewBookReviewResponse(review))
 	}
