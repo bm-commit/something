@@ -74,7 +74,7 @@ var _ = Describe("Server", func() {
 	})
 
 	Context("When GET request is sent to /books", func() {
-		It("Returns null data if not exists books", func() {
+		It("Returns empty array if not exists books", func() {
 			resp, err := http.Get(server.URL + "/books")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
@@ -82,7 +82,7 @@ var _ = Describe("Server", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 
 		It("Returns an existing book", func() {
