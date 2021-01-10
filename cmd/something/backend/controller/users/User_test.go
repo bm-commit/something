@@ -107,6 +107,7 @@ var _ = Describe("Server", func() {
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
 
+			interests, _ := json.Marshal(newUser.Interests)
 			Expect(string(body)).To(MatchJSON(`
 			{
 				"data":
@@ -116,7 +117,8 @@ var _ = Describe("Server", func() {
 							"name":"` + newUser.Name + `",
 							"username":"` + newUser.Username + `",
 							"email":"` + newUser.Email + `",
-							"role":"` + newUser.Role + `" ,
+							"role":"` + newUser.Role + `",
+							"interests":` + string(interests) + `,
 							"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
@@ -137,6 +139,7 @@ var _ = Describe("Server", func() {
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
 
+			interests, _ := json.Marshal(newUser.Interests)
 			Expect(string(body)).To(MatchJSON(`
 			{
 				"data":
@@ -146,6 +149,7 @@ var _ = Describe("Server", func() {
 						"username":"` + newUser.Username + `",
 						"email":"` + newUser.Email + `",
 						"role":"` + newUser.Role + `" ,
+						"interests":` + string(interests) + `,
 						"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 					}
 			}`))
