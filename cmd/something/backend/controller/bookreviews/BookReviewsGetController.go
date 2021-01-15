@@ -2,6 +2,7 @@ package bookreviews
 
 import (
 	"net/http"
+	"something/internal/bookreviews/application"
 	"something/internal/bookreviews/application/find"
 	bookFind "something/internal/books/application/find"
 
@@ -43,9 +44,30 @@ func GetBookReviewsController(finder find.Service, bookFinder bookFind.Service) 
 			})
 			return
 		}
+
+		// TODO Refactor to criteria
+		isRating := c.Query("rating")
+		if isRating == "true" {
+			c.JSON(http.StatusOK, gin.H{
+				"rating": getBookRating(bookReviews),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"data": bookReviews,
 		})
 		return
 	}
+}
+
+func getBookRating(bookReviews []*application.BookReviewResponse) int {
+	sumRating := 0
+	if len(bookReviews) == 0 {
+		return sumRating
+	}
+	for _, review := range bookReviews {
+		sumRating += review.Rating
+	}
+	return sumRating / len(bookReviews)
 }
