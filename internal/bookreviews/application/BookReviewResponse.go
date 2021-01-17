@@ -10,7 +10,7 @@ import (
 type BookReviewResponse struct {
 	ID        string    `json:"id"`
 	Text      string    `json:"text"`
-	Rating    int       `json:"rating"`
+	Rating    float64   `json:"rating"`
 	BookID    string    `json:"book_id"`
 	UserID    string    `json:"user_id"`
 	CreatedOn time.Time `json:"created_on"`

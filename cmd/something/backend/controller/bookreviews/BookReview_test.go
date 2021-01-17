@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -19,7 +20,6 @@ import (
 	bookDomain "something/internal/books/domain"
 	bookPersistance "something/internal/books/infraestructure/persistence"
 	jwt "something/pkg/redisjwt"
-	"strconv"
 	"testing"
 	"time"
 
@@ -114,7 +114,7 @@ var _ = Describe("Server", func() {
 						{
 							"id":"` + newBookReview.ID + `",
 							"text":"` + newBookReview.Text + `",
-							"rating":` + strconv.Itoa(newBookReview.Rating) + ` ,
+							"rating":` + fmt.Sprintf("%f", newBookReview.Rating) + ` ,
 							"book_id":"` + newBookReview.BookID + `",
 							"user_id":"` + newBookReview.UserID + `",
 							"created_on":"` + newBookReview.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
@@ -143,7 +143,7 @@ var _ = Describe("Server", func() {
 					{
 						"id":"` + newBookReview.ID + `",
 						"text":"` + newBookReview.Text + `",
-						"rating":` + strconv.Itoa(newBookReview.Rating) + `,
+						"rating":` + fmt.Sprintf("%f", newBookReview.Rating) + `,
 						"book_id":"` + newBookReview.BookID + `",
 						"user_id":"` + newBookReview.UserID + `",
 						"created_on":"` + newBookReview.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
