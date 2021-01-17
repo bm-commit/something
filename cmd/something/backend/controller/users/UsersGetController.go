@@ -2,6 +2,7 @@ package users
 
 import (
 	"net/http"
+	"strings"
 
 	bookFinder "something/internal/books/application/find"
 	"something/internal/users/application/find"
@@ -14,7 +15,7 @@ func GetUsersController(finder find.Service, bFinder bookFinder.Service) func(c 
 	return func(c *gin.Context) {
 		username := c.Query("username")
 		if username != "" {
-			user, err := finder.FindUserByUsername(username)
+			user, err := finder.FindUserByUsername(strings.ToLower(username))
 			if err != nil {
 				if err.Error() == "username not found" {
 					c.JSON(http.StatusNotFound, gin.H{
