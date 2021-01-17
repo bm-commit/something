@@ -13,6 +13,7 @@ type BookResponse struct {
 	Author      string    `json:"author"`
 	Genre       string    `json:"genre"`
 	Pages       int       `json:"pages"`
+	Rating      float64   `json:"rating"`
 	CreatedOn   time.Time `json:"created_on"`
 }
 
@@ -25,6 +26,7 @@ func NewBookResponse(book *domain.Book) *BookResponse {
 		Author:      book.Author,
 		Genre:       book.Genre,
 		Pages:       book.Pages,
+		Rating:      0,
 		CreatedOn:   book.CreatedOn,
 	}
 }

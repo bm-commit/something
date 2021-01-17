@@ -90,15 +90,17 @@ func setupServer() *gin.Engine {
 
 	// Books
 	inMemoryBookRepo := bookPersistance.NewMongoBookRepository(dbClient)
+
+	inMemoryBookReviewRepo := persistence.NewMongoBookReviewRepository(dbClient)
+	bookReviewFinder := find.NewService(inMemoryBookReviewRepo)
+
 	bookFind := bookFinder.NewService(inMemoryBookRepo)
 	bookCreator := bookCreate.NewService(inMemoryBookRepo)
 	bookDeletor := bookDelete.NewService(inMemoryBookRepo)
 	bookUpdater := bookUpdate.NewService(inMemoryBookRepo)
-	books.RegisterRoutes(bookFind, bookCreator, bookUpdater, bookDeletor, tokenParams.AccessSecret, router)
+	books.RegisterRoutes(bookFind, bookReviewFinder, bookCreator, bookUpdater, bookDeletor, tokenParams.AccessSecret, router)
 
 	// Book reviews
-	inMemoryBookReviewRepo := persistence.NewMongoBookReviewRepository(dbClient)
-	bookReviewFinder := find.NewService(inMemoryBookReviewRepo)
 	bookReviewCreator := create.NewService(inMemoryBookReviewRepo)
 	bookReviewUpdater := update.NewService(inMemoryBookReviewRepo)
 	bookReviewDelete := delete.NewService(inMemoryBookReviewRepo)

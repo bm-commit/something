@@ -2,6 +2,7 @@ package books
 
 import (
 	"net/http"
+	bookReviewFinder "something/internal/bookreviews/application/find"
 	"something/internal/books/application/find"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ type urlParameter struct {
 }
 
 // GetBookController ...
-func GetBookController(finder find.Service) func(c *gin.Context) {
+func GetBookController(finder find.Service, reviewFinder bookReviewFinder.Service) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var param urlParameter
 		if err := c.ShouldBindUri(&param); err != nil {
@@ -31,6 +32,10 @@ func GetBookController(finder find.Service) func(c *gin.Context) {
 				"error": "Something wrong happened, try again later ...",
 			})
 			return
+		}
+		bookReviews, err := reviewFinder.FindBookReviews(book.ID)
+		if err == nil {
+			book.Rating = getBookRating(bookReviews)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"data": book,
