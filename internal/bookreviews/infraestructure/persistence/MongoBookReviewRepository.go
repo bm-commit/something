@@ -26,7 +26,7 @@ func NewMongoBookReviewRepository(m *mongo.Database) domain.BookReviewRepository
 func (r *mongoRepository) Find(bookID string) ([]*domain.BookReview, error) {
 	var bookReviews []*domain.BookReview
 
-	cur, err := r.con.Find(context.TODO(), bson.D{}, nil)
+	cur, err := r.con.Find(context.TODO(), bson.D{primitive.E{Key: "bookid", Value: bookID}}, nil)
 	if err != nil {
 		log.Println(err)
 		return bookReviews, err
