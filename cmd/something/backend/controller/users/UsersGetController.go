@@ -4,14 +4,18 @@ import (
 	"net/http"
 	"strings"
 
+	bookReviewFinder "something/internal/bookreviews/application/find"
 	bookFinder "something/internal/books/application/find"
+	"something/internal/helpers"
 	"something/internal/users/application/find"
 
 	"github.com/gin-gonic/gin"
 )
 
 // GetUsersController ...
-func GetUsersController(finder find.Service, bFinder bookFinder.Service) func(c *gin.Context) {
+func GetUsersController(finder find.Service, bFinder bookFinder.Service,
+	reviewFinder bookReviewFinder.Service,
+) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		username := c.Query("username")
 		if username != "" {
@@ -28,7 +32,7 @@ func GetUsersController(finder find.Service, bFinder bookFinder.Service) func(c 
 				})
 				return
 			}
-			interests := classifyBookInterests(user.Interests, bFinder)
+			interests := classifyBookInterests(user.Interests, bFinder, reviewFinder)
 			c.JSON(http.StatusOK, gin.H{
 				"data":      user,
 				"interests": interests,
@@ -51,14 +55,14 @@ func GetUsersController(finder find.Service, bFinder bookFinder.Service) func(c 
 }
 
 // TODO Refactor code below to classify user book interests
-
 type bookShort struct {
-	ID     string `json:"id"`
-	Title  string `json:"title"`
-	Author string `json:"author"`
+	ID     string  `json:"id"`
+	Title  string  `json:"title"`
+	Author string  `json:"author"`
+	Rating float64 `json:"rating"`
 }
 
-func classifyBookInterests(interests map[string]string, finder bookFinder.Service) map[string][]*bookShort {
+func classifyBookInterests(interests map[string]string, finder bookFinder.Service, reviewFinder bookReviewFinder.Service) map[string][]*bookShort {
 
 	bookInterests := map[string][]*bookShort{}
 
@@ -75,6 +79,11 @@ func classifyBookInterests(interests map[string]string, finder bookFinder.Servic
 		book.ID = bookResponse.ID
 		book.Title = bookResponse.Title
 		book.Author = bookResponse.Author
+
+		reviews, err := reviewFinder.FindBookReviews(book.ID)
+		if err == nil {
+			book.Rating = helpers.GetBookRating(reviews)
+		}
 
 		switch status {
 		case "pending":

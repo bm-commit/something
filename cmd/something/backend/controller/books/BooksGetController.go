@@ -2,7 +2,6 @@ package books
 
 import (
 	"net/http"
-	bookReview "something/internal/bookreviews/application"
 	bookReviewFinder "something/internal/bookreviews/application/find"
 	"something/internal/books/application"
 	"something/internal/books/application/find"
@@ -34,18 +33,7 @@ func addRatingToBooks(books []*application.BookResponse, reviewFinder bookReview
 	for _, book := range books {
 		bookReviews, err := reviewFinder.FindBookReviews(book.ID)
 		if err == nil {
-			book.Rating = getBookRating(bookReviews)
+			book.Rating = helpers.GetBookRating(bookReviews)
 		}
 	}
-}
-
-func getBookRating(bookReviews []*bookReview.BookReviewResponse) float64 {
-	var sumRating float64 = 0
-	if len(bookReviews) == 0 {
-		return sumRating
-	}
-	for _, review := range bookReviews {
-		sumRating += review.Rating
-	}
-	return helpers.Round(sumRating/float64(len(bookReviews)), 0.5)
 }

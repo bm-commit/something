@@ -4,6 +4,7 @@ import (
 	"net/http"
 	bookReviewFinder "something/internal/bookreviews/application/find"
 	"something/internal/books/application/find"
+	"something/internal/helpers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,7 +36,7 @@ func GetBookController(finder find.Service, reviewFinder bookReviewFinder.Servic
 		}
 		bookReviews, err := reviewFinder.FindBookReviews(book.ID)
 		if err == nil {
-			book.Rating = getBookRating(bookReviews)
+			book.Rating = helpers.GetBookRating(bookReviews)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"data": book,
