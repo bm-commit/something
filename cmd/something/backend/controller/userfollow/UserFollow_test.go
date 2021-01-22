@@ -96,8 +96,13 @@ var _ = Describe("Server", func() {
 				"dante", "dante06", "dante@gmail.com",
 				"dante-secure-password")
 			userRepo.Save(newUser)
-			userFollow, _ := domain.NewUserFollow(
+			newUser2, _ := userDomain.NewUser(
 				"a6e31ea4-af01-4426-a89f-98a14cf2b077",
+				"dante", "dante06", "dante@gmail.com",
+				"dante-secure-password")
+			userRepo.Save(newUser2)
+			userFollow, _ := domain.NewUserFollow(
+				newUser2.ID,
 				newUser.ID)
 			userFollowRepo.Follow(userFollow)
 
@@ -114,9 +119,10 @@ var _ = Describe("Server", func() {
 				"data":
 					[
 						{
-							"from":"` + userFollow.From + `",
-							"to":"` + userFollow.To + `",
-							"created_on":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
+							"id":"` + newUser2.ID + `",
+							"name":"` + newUser2.Name + `",
+							"username":"` + newUser2.Username + `",
+							"follow_at":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
 			}`))
@@ -146,7 +152,12 @@ var _ = Describe("Server", func() {
 				"dante", "dante06", "dante@gmail.com",
 				"dante-secure-password")
 			userRepo.Save(newUser)
-			userFollow, _ := domain.NewUserFollow(newUser.ID, "4328edff-5422-46eb-b7d6-2b5bf89cb151")
+			newUser2, _ := userDomain.NewUser(
+				"4328edff-5422-46eb-b7d6-2b5bf89cb151",
+				"bob", "bo1", "bob@gmail.com",
+				"bob-secure-password")
+			userRepo.Save(newUser2)
+			userFollow, _ := domain.NewUserFollow(newUser.ID, newUser2.ID)
 			userFollowRepo.Follow(userFollow)
 
 			resp, err := http.Get(server.URL + "/users/" + newUser.ID + "/following")
@@ -162,9 +173,10 @@ var _ = Describe("Server", func() {
 				"data":
 					[
 						{
-							"from":"` + userFollow.From + `",
-							"to":"` + userFollow.To + `",
-							"created_on":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
+							"id":"` + newUser2.ID + `",
+							"name":"` + newUser2.Name + `",
+							"username":"` + newUser2.Username + `",
+							"follow_at":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
 			}`))

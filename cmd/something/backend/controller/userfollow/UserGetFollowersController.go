@@ -2,6 +2,7 @@ package userfollow
 
 import (
 	"net/http"
+	"something/internal/userfollow/application"
 	"something/internal/userfollow/application/find"
 	userFind "something/internal/users/application/find"
 
@@ -38,9 +39,29 @@ func GetFollowersController(uc find.Service, userFinder userFind.Service) func(c
 			return
 		}
 
+		followersLong := getFollowersLong(followers, userFinder)
+
 		c.JSON(http.StatusOK, gin.H{
-			"data": followers,
+			"data": followersLong,
 		})
 		return
 	}
+}
+
+// TODO Refactor
+func getFollowersLong(followers []*application.UserFollowResponse, userFinder userFind.Service) []*application.UserFollowResponseLong {
+	followersLong := []*application.UserFollowResponseLong{}
+	for _, follower := range followers {
+		user, err := userFinder.FindUserByID(follower.From)
+		if err == nil {
+			f := &application.UserFollowResponseLong{
+				ID:       user.ID,
+				Name:     user.Name,
+				Username: user.Username,
+				FollowAt: follower.CreatedOn,
+			}
+			followersLong = append(followersLong, f)
+		}
+	}
+	return followersLong
 }
