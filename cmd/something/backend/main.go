@@ -74,7 +74,12 @@ func setupServer() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(gin.Recovery())
-	router.Use(cors.Default())
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowCredentials = true
+	corsConfig.AddAllowHeaders("authorization")
+	router.Use(cors.New(corsConfig))
 
 	// init database
 	dbHost := os.Getenv("DB_HOST")
@@ -113,7 +118,7 @@ func setupServer() *gin.Engine {
 	userUpdater := userUpdate.NewService(inMemoryUserRepo)
 	userDeletor := userDelete.NewService(inMemoryUserRepo)
 	authLogin := login.NewService(inMemoryUserRepo, cryptoRepo)
-	users.RegisterRoutes(userFind, bookFind, userCreator, userUpdater, userDeletor, authLogin, tokenParams, router)
+	users.RegisterRoutes(userFind, bookFind, bookReviewFinder, userCreator, userUpdater, userDeletor, authLogin, tokenParams, router)
 
 	// Users followers
 	inMemoryUserFollowRepo := userFollowPersistance.NewMongoUserFollowRepository(dbClient)
