@@ -60,15 +60,12 @@ type bookShort struct {
 	Title  string  `json:"title"`
 	Author string  `json:"author"`
 	Rating float64 `json:"rating"`
+	Status string  `json:"status"`
 }
 
-func classifyBookInterests(interests map[string]string, finder bookFinder.Service, reviewFinder bookReviewFinder.Service) map[string][]*bookShort {
+func classifyBookInterests(interests map[string]string, finder bookFinder.Service, reviewFinder bookReviewFinder.Service) []*bookShort {
 
-	bookInterests := map[string][]*bookShort{}
-
-	pending := []*bookShort{}
-	reading := []*bookShort{}
-	done := []*bookShort{}
+	bookInterests := []*bookShort{}
 
 	for bookID, status := range interests {
 		book := &bookShort{}
@@ -87,20 +84,16 @@ func classifyBookInterests(interests map[string]string, finder bookFinder.Servic
 
 		switch status {
 		case "pending":
-			pending = append(pending, book)
+			book.Status = "pending"
 			break
 		case "reading":
-			reading = append(reading, book)
+			book.Status = "reading"
 			break
 		case "done":
-			done = append(done, book)
+			book.Status = "done"
 			break
 		}
+		bookInterests = append(bookInterests, book)
 	}
-
-	bookInterests["pending"] = pending
-	bookInterests["reading"] = reading
-	bookInterests["done"] = done
-
 	return bookInterests
 }
