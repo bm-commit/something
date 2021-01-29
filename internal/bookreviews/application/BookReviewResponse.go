@@ -18,7 +18,7 @@ type BookReviewResponse struct {
 
 // User ...
 type User struct {
-	ID       string `json:"user_id"`
+	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Username string `json:"username"`
 }
