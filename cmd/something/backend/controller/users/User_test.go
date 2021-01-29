@@ -9,6 +9,9 @@ import (
 	"net/http/httptest"
 	"os"
 	"something/config"
+	bookReviewFind "something/internal/bookreviews/application/find"
+	bookReviewDomain "something/internal/bookreviews/domain"
+	bookReviewPersistence "something/internal/bookreviews/infraestructure/persistence"
 	bookFind "something/internal/books/application/find"
 	bookDomain "something/internal/books/domain"
 	bookPersistence "something/internal/books/infraestructure/persistence"
@@ -44,15 +47,17 @@ func TestUserCheck(t *testing.T) {
 func setupServer(
 	userRepo domain.UserRepository,
 	bookRepo bookDomain.BookRepository,
+	bookReviewRepo bookReviewDomain.BookReviewRepository,
 	crypto crypto.Crypto) *gin.Engine {
 	router := gin.Default()
 	finder := find.NewService(userRepo)
 	bookFinder := bookFind.NewService(bookRepo)
+	bookReviewFinder := bookReviewFind.NewService(bookReviewRepo)
 	creator := create.NewService(userRepo, crypto)
 	updater := update.NewService(userRepo)
 	deleter := delete.NewService(userRepo)
 	authLogin := login.NewService(userRepo, crypto)
-	RegisterRoutes(finder, bookFinder, creator, updater, deleter, authLogin, tokenParams, router)
+	RegisterRoutes(finder, bookFinder, bookReviewFinder, creator, updater, deleter, authLogin, tokenParams, router)
 	return router
 }
 
@@ -60,6 +65,7 @@ var _ = Describe("Server", func() {
 	var server *httptest.Server
 	var userRepo domain.UserRepository
 	var bookRepo bookDomain.BookRepository
+	var bookReviewRepo bookReviewDomain.BookReviewRepository
 	var cryptoRepo crypto.Crypto
 
 	dbHost := os.Getenv("DB_HOST")
@@ -73,8 +79,9 @@ var _ = Describe("Server", func() {
 	BeforeEach(func() {
 		userRepo = persistence.NewMongoUsersRepository(dbClient)
 		bookRepo = bookPersistence.NewInMemoryBookRepository()
+		bookReviewRepo = bookReviewPersistence.NewInMemoryBookReviewsRepository()
 		cryptoRepo = crypto.NewBcrypt()
-		server = httptest.NewServer(setupServer(userRepo, bookRepo, cryptoRepo))
+		server = httptest.NewServer(setupServer(userRepo, bookRepo, bookReviewRepo, cryptoRepo))
 	})
 
 	AfterEach(func() {

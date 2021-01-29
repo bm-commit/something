@@ -8,12 +8,19 @@ import (
 
 // BookReviewResponse ...
 type BookReviewResponse struct {
-	ID        string    `json:"id"`
-	Text      string    `json:"text"`
-	Rating    float64   `json:"rating"`
-	BookID    string    `json:"book_id"`
-	UserID    string    `json:"user_id"`
+	ID        string  `json:"id"`
+	Text      string  `json:"text"`
+	Rating    float64 `json:"rating"`
+	BookID    string  `json:"book_id"`
+	User      `json:"user"`
 	CreatedOn time.Time `json:"created_on"`
+}
+
+// User ...
+type User struct {
+	ID       string `json:"user_id"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
 }
 
 // NewBookReviewResponse ...
@@ -23,7 +30,7 @@ func NewBookReviewResponse(bookReview *domain.BookReview) *BookReviewResponse {
 		Text:      bookReview.Text,
 		Rating:    bookReview.Rating,
 		BookID:    bookReview.BookID,
-		UserID:    bookReview.UserID,
+		User:      User{ID: bookReview.UserID},
 		CreatedOn: bookReview.CreatedOn,
 	}
 }

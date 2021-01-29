@@ -19,6 +19,9 @@ import (
 	bookFind "something/internal/books/application/find"
 	bookDomain "something/internal/books/domain"
 	bookPersistance "something/internal/books/infraestructure/persistence"
+	userFind "something/internal/users/application/find"
+	userDomain "something/internal/users/domain"
+	userPersistance "something/internal/users/infraestructure/persistence"
 	jwt "something/pkg/redisjwt"
 	"testing"
 	"time"
@@ -40,14 +43,17 @@ const userID = "c015f5ce-3b42-44c8-8b82-f011b23b989a"
 
 func setupServer(
 	bookReviewRepo domain.BookReviewRepository,
-	bookRepo bookDomain.BookRepository) *gin.Engine {
+	bookRepo bookDomain.BookRepository,
+	userRepo userDomain.UserRepository,
+) *gin.Engine {
 	router := gin.Default()
 	finder := find.NewService(bookReviewRepo)
 	bookFinder := bookFind.NewService(bookRepo)
+	userFinder := userFind.NewService(userRepo)
 	updater := update.NewService(bookReviewRepo)
 	creator := create.NewService(bookReviewRepo)
 	deletor := delete.NewService(bookReviewRepo)
-	RegisterRoutes(finder, bookFinder, creator, updater, deletor, tokenParams.AccessSecret, router)
+	RegisterRoutes(finder, bookFinder, userFinder, creator, updater, deletor, tokenParams.AccessSecret, router)
 	return router
 }
 
@@ -60,6 +66,7 @@ var _ = Describe("Server", func() {
 	var server *httptest.Server
 	var bookRepo bookDomain.BookRepository
 	var bookReviewRepo domain.BookReviewRepository
+	var userRepo userDomain.UserRepository
 
 	dbHost := os.Getenv("DB_HOST")
 	dbUser := os.Getenv("DB_USER")
@@ -71,10 +78,11 @@ var _ = Describe("Server", func() {
 
 	BeforeEach(func() {
 		bookRepo = bookPersistance.NewInMemoryBookRepository()
+		userRepo = userPersistance.NewInMemoryUserRepository()
 		defaultBook, _ := bookDomain.NewBook(bookID, "title", "description", "author", "genre", 1)
 		bookRepo.Save(defaultBook)
 		bookReviewRepo = persistence.NewMongoBookReviewRepository(dbClient)
-		server = httptest.NewServer(setupServer(bookReviewRepo, bookRepo))
+		server = httptest.NewServer(setupServer(bookReviewRepo, bookRepo, userRepo))
 	})
 
 	AfterEach(func() {
@@ -116,7 +124,11 @@ var _ = Describe("Server", func() {
 							"text":"` + newBookReview.Text + `",
 							"rating":` + fmt.Sprintf("%f", newBookReview.Rating) + ` ,
 							"book_id":"` + newBookReview.BookID + `",
-							"user_id":"` + newBookReview.UserID + `",
+							"user":{
+									"user_id":"` + newBookReview.UserID + `",
+									"name":"",
+									"username":""
+							},
 							"created_on":"` + newBookReview.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
@@ -145,7 +157,11 @@ var _ = Describe("Server", func() {
 						"text":"` + newBookReview.Text + `",
 						"rating":` + fmt.Sprintf("%f", newBookReview.Rating) + `,
 						"book_id":"` + newBookReview.BookID + `",
-						"user_id":"` + newBookReview.UserID + `",
+						"user":{
+							"user_id":"` + newBookReview.UserID + `",
+							"name":"",
+							"username":""
+						},
 						"created_on":"` + newBookReview.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 					}
 			}`))
