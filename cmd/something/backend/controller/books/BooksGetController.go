@@ -6,6 +6,7 @@ import (
 	"something/internal/books/application"
 	"something/internal/books/application/find"
 	"something/internal/helpers"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +14,10 @@ import (
 // GetBooksController ...
 func GetBooksController(finder find.Service, reviewFinder bookReviewFinder.Service) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		books, err := finder.FindBooks()
+
+		criteria := getQueryParameters(c)
+
+		books, err := finder.FindBooks(criteria)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Something wrong happened, try again later ...",
@@ -25,6 +29,19 @@ func GetBooksController(finder find.Service, reviewFinder bookReviewFinder.Servi
 			"data": books,
 		})
 		return
+	}
+}
+
+func getQueryParameters(c *gin.Context) *find.Criteria {
+	page, _ := strconv.Atoi(c.Query("page"))
+	perPage, _ := strconv.Atoi(c.Query("per_page"))
+
+	return &find.Criteria{
+		Page:    page,
+		PerPage: perPage,
+		Query:   c.Query("q"),
+		Genre:   c.Query("genre"),
+		Author:  c.Query("author"),
 	}
 }
 

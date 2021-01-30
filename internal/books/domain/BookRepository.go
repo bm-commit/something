@@ -2,7 +2,7 @@ package domain
 
 // BookRepository ...
 type BookRepository interface {
-	Find() ([]*Book, error)
+	Find(*BookCriteria) ([]*Book, error)
 	FindByID(string) (*Book, error)
 	Update(*Book) error
 	Save(*Book) error
