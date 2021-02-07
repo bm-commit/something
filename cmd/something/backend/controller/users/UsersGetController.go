@@ -2,6 +2,7 @@ package users
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	bookReviewFinder "something/internal/bookreviews/application/find"
@@ -40,7 +41,8 @@ func GetUsersController(finder find.Service, bFinder bookFinder.Service,
 			return
 		}
 
-		users, err := finder.FindUsers()
+		criteria := getQueryParameters(c)
+		users, err := finder.FindUsers(criteria)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Something wrong happened, try again later ...",
@@ -51,6 +53,17 @@ func GetUsersController(finder find.Service, bFinder bookFinder.Service,
 			"data": users,
 		})
 		return
+	}
+}
+
+func getQueryParameters(c *gin.Context) *find.Criteria {
+	page, _ := strconv.Atoi(c.Query("page"))
+	perPage, _ := strconv.Atoi(c.Query("per_page"))
+
+	return &find.Criteria{
+		Page:    page,
+		PerPage: perPage,
+		Query:   c.Query("q"),
 	}
 }
 

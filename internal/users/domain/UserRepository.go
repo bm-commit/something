@@ -2,7 +2,7 @@ package domain
 
 // UserRepository ...
 type UserRepository interface {
-	Find() ([]*User, error)
+	Find(*UserCriteria) ([]*User, error)
 	FindByID(string) (*User, error)
 	FindByEmail(string) (*User, error)
 	FindByUsername(string) (*User, error)
