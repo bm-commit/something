@@ -32,7 +32,7 @@ func (r *mongoRepository) Find(criteria *domain.UserCriteria) ([]*domain.User, e
 
 	query := generateQueryWithCriteria(criteria)
 
-	cur, err := r.con.Find(context.TODO(), query, nil)
+	cur, err := r.con.Find(context.TODO(), query, findOptions)
 	if err != nil {
 		log.Println(err)
 		return users, err
