@@ -17,8 +17,8 @@ type UserCommand struct {
 // Validate ...
 func (u UserCommand) Validate() error {
 	return validation.ValidateStruct(&u,
-		validation.Field(&u.Name, validation.Required, validation.Length(1, 50)),
-		validation.Field(&u.Username, validation.Required, validation.Length(1, 50)),
+		validation.Field(&u.Name, validation.Required, validation.Length(1, 45)),
+		validation.Field(&u.Username, validation.Required, validation.Length(1, 45)),
 		validation.Field(&u.Email, validation.Required, is.Email),
 		validation.Field(&u.Password, validation.Required, validation.Length(8, 64)),
 	)

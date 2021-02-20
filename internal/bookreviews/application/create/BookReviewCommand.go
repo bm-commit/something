@@ -14,7 +14,7 @@ type BookReviewCommand struct {
 // Validate ...
 func (b BookReviewCommand) Validate() error {
 	return validation.ValidateStruct(&b,
-		validation.Field(&b.Text, validation.Required, validation.Length(1, 250)),
+		validation.Field(&b.Text, validation.Required, validation.Length(1, 1500)),
 		validation.Field(&b.Rating, validation.Required, validation.Min(0.5), validation.Max(5.0)),
 	)
 }
