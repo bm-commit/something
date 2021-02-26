@@ -12,6 +12,13 @@ type BookReview struct {
 	CreatedOn time.Time
 }
 
+// BookReviewShort ...
+type BookReviewShort struct {
+	ID     string `bson:"_id,omitempty"`
+	Rating float64
+	Total  int
+}
+
 // NewBookReview ...
 func NewBookReview(id, text string, rating float64, bookID, userID string) (*BookReview, error) {
 	return &BookReview{

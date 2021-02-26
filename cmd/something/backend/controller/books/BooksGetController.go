@@ -2,6 +2,7 @@ package books
 
 import (
 	"net/http"
+	bookReview "something/internal/bookreviews/application"
 	bookReviewFinder "something/internal/bookreviews/application/find"
 	"something/internal/books/application"
 	"something/internal/books/application/find"
@@ -11,11 +12,32 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	ratingDesc = -1
+	ratingAsc  = 1
+)
+
 // GetBooksController ...
 func GetBooksController(finder find.Service, reviewFinder bookReviewFinder.Service) func(c *gin.Context) {
 	return func(c *gin.Context) {
 
 		criteria := getQueryParameters(c)
+
+		rating, _ := strconv.Atoi(c.Query("rating"))
+		if rating == ratingAsc || rating == ratingDesc {
+			bookRatings, err := reviewFinder.FindReviews(&bookReviewFinder.Criteria{Sort: rating})
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Something wrong happened, try again later ...",
+				})
+				return
+			}
+			addBookInfo(bookRatings, finder)
+			c.JSON(http.StatusOK, gin.H{
+				"data": bookRatings,
+			})
+			return
+		}
 
 		books, err := finder.FindBooks(criteria)
 		if err != nil {
@@ -51,6 +73,16 @@ func addRatingToBooks(books []*application.BookResponse, reviewFinder bookReview
 		bookReviews, err := reviewFinder.FindBookReviews(book.ID)
 		if err == nil {
 			book.Rating = helpers.GetBookRating(bookReviews)
+		}
+	}
+}
+
+func addBookInfo(bookRatings []*bookReview.BookRatingResponse, finder find.Service) {
+	for _, bookRating := range bookRatings {
+		book, err := finder.FindBookByID(bookRating.BookID)
+		if err == nil {
+			bookRating.Title = book.Title
+			bookRating.Author = book.Author
 		}
 	}
 }

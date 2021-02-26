@@ -16,6 +16,15 @@ type BookReviewResponse struct {
 	CreatedOn time.Time `json:"created_on"`
 }
 
+// BookRatingResponse ...
+type BookRatingResponse struct {
+	BookID string  `json:"book_id"`
+	Title  string  `json:"title"`
+	Author string  `json:"author"`
+	Rating float64 `json:"rating"`
+	Total  int     `json:"total"`
+}
+
 // User ...
 type User struct {
 	ID       string `json:"id"`
@@ -40,6 +49,24 @@ func NewReviewsResponse(bookReviews []*domain.BookReview) []*BookReviewResponse 
 	bookReviewsResponse := []*BookReviewResponse{}
 	for _, review := range bookReviews {
 		bookReviewsResponse = append(bookReviewsResponse, NewBookReviewResponse(review))
+	}
+	return bookReviewsResponse
+}
+
+// NewBookReviewShortResponse ...
+func NewBookReviewShortResponse(bookReview *domain.BookReviewShort) *BookRatingResponse {
+	return &BookRatingResponse{
+		Rating: bookReview.Rating,
+		BookID: bookReview.ID,
+		Total:  bookReview.Total,
+	}
+}
+
+// NewReviewShortResponse ...
+func NewReviewShortResponse(bookReviews []*domain.BookReviewShort) []*BookRatingResponse {
+	bookReviewsResponse := []*BookRatingResponse{}
+	for _, review := range bookReviews {
+		bookReviewsResponse = append(bookReviewsResponse, NewBookReviewShortResponse(review))
 	}
 	return bookReviewsResponse
 }

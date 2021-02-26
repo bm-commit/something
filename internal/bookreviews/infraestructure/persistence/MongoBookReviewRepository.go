@@ -53,6 +53,42 @@ func (r *mongoRepository) FindByID(id string) (*domain.BookReview, error) {
 	return result, nil
 }
 
+func (r *mongoRepository) FindReviews(criteria *domain.BookReviewCriteria) ([]*domain.BookReviewShort, error) {
+
+	var bookReviews []*domain.BookReviewShort
+
+	sortStage := bson.D{{"$sort", bson.D{{"rating", criteria.Sort}}}}
+	groupStage := bson.D{
+		{"$group",
+			bson.D{
+				{"_id", "$bookid"},
+				{"total",
+					bson.D{{"$sum", 1}}},
+				{"rating", bson.D{{"$avg", "$rating"}}},
+			},
+		}}
+	limit := bson.D{{"$limit", 25}}
+
+	cur, err := r.con.Aggregate(
+		context.TODO(),
+		mongo.Pipeline{
+			sortStage,
+			groupStage,
+			limit,
+		})
+	if err != nil {
+		log.Println(err)
+		return bookReviews, err
+	}
+
+	if err = cur.All(context.TODO(), &bookReviews); err != nil {
+		log.Println(err)
+		return bookReviews, err
+	}
+
+	return bookReviews, nil
+}
+
 func (r *mongoRepository) Update(bookReview *domain.BookReview) error {
 	_, err := r.con.UpdateOne(context.TODO(), bson.M{"id": bookReview.ID}, bson.D{
 		{"$set", bson.D{
