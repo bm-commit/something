@@ -122,10 +122,10 @@ var _ = Describe("Server", func() {
 						{
 							"id":"` + newBookReview.ID + `",
 							"text":"` + newBookReview.Text + `",
-							"rating":` + fmt.Sprintf("%f", newBookReview.Rating) + ` ,
+							"rating":` + fmt.Sprintf("%d", int(newBookReview.Rating)) + ` ,
 							"book_id":"` + newBookReview.BookID + `",
 							"user":{
-									"user_id":"` + newBookReview.UserID + `",
+									"id":"` + newBookReview.UserID + `",
 									"name":"",
 									"username":""
 							},
@@ -155,10 +155,10 @@ var _ = Describe("Server", func() {
 					{
 						"id":"` + newBookReview.ID + `",
 						"text":"` + newBookReview.Text + `",
-						"rating":` + fmt.Sprintf("%f", newBookReview.Rating) + `,
+						"rating":` + fmt.Sprintf("%d", int(newBookReview.Rating)) + `,
 						"book_id":"` + newBookReview.BookID + `",
 						"user":{
-							"user_id":"` + newBookReview.UserID + `",
+							"id":"` + newBookReview.UserID + `",
 							"name":"",
 							"username":""
 						},
