@@ -6,14 +6,21 @@ import "time"
 type BookReview struct {
 	ID        string
 	Text      string
-	Rating    int
+	Rating    float64
 	BookID    string
 	UserID    string
 	CreatedOn time.Time
 }
 
+// BookReviewShort ...
+type BookReviewShort struct {
+	ID     string `bson:"_id,omitempty"`
+	Rating float64
+	Total  int
+}
+
 // NewBookReview ...
-func NewBookReview(id, text string, rating int, bookID, userID string) (*BookReview, error) {
+func NewBookReview(id, text string, rating float64, bookID, userID string) (*BookReview, error) {
 	return &BookReview{
 		ID:        id,
 		Text:      text,

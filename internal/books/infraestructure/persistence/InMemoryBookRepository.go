@@ -21,7 +21,7 @@ func NewInMemoryBookRepository() domain.BookRepository {
 	return bookInstance
 }
 
-func (r *repository) Find() ([]*domain.Book, error) {
+func (r *repository) Find(criteria *domain.BookCriteria) ([]*domain.Book, error) {
 	var books []*domain.Book
 	for _, book := range r.books {
 		books = append(books, book)

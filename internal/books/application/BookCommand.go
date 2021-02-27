@@ -18,9 +18,9 @@ type BookCommand struct {
 func (b BookCommand) Validate() error {
 	return validation.ValidateStruct(&b,
 		validation.Field(&b.Title, validation.Required, validation.Length(1, 75)),
-		validation.Field(&b.Description, validation.Required, validation.Length(1, 750)),
+		validation.Field(&b.Description, validation.Required, validation.Length(1, 1500)),
 		validation.Field(&b.Author, validation.Length(1, 75)),
-		validation.Field(&b.Genre, validation.Required, validation.Length(1, 50)),
+		validation.Field(&b.Genre, validation.Required, validation.Length(1, 150)),
 		validation.Field(&b.Pages, validation.Min(1)),
 	)
 }

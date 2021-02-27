@@ -7,12 +7,13 @@ import (
 
 // UserResponse ...
 type UserResponse struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	Role      string    `json:"role"`
-	CreatedOn time.Time `json:"created_on"`
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	Username  string            `json:"username"`
+	Email     string            `json:"email"`
+	Role      string            `json:"role"`
+	Interests map[string]string `json:"interests"`
+	CreatedOn time.Time         `json:"created_on"`
 }
 
 // NewUserResponse ...
@@ -23,13 +24,14 @@ func NewUserResponse(User *domain.User) *UserResponse {
 		Username:  User.Username,
 		Email:     User.Email,
 		Role:      User.Role,
+		Interests: User.Interests,
 		CreatedOn: User.CreatedOn,
 	}
 }
 
 // NewUsersResponse ...
 func NewUsersResponse(Users []*domain.User) []*UserResponse {
-	var usersResponse []*UserResponse
+	usersResponse := []*UserResponse{}
 	for _, user := range Users {
 		usersResponse = append(usersResponse, NewUserResponse(user))
 	}

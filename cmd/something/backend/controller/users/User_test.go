@@ -9,6 +9,9 @@ import (
 	"net/http/httptest"
 	"os"
 	"something/config"
+	bookReviewFind "something/internal/bookreviews/application/find"
+	bookReviewDomain "something/internal/bookreviews/domain"
+	bookReviewPersistence "something/internal/bookreviews/infraestructure/persistence"
 	bookFind "something/internal/books/application/find"
 	bookDomain "something/internal/books/domain"
 	bookPersistence "something/internal/books/infraestructure/persistence"
@@ -44,15 +47,17 @@ func TestUserCheck(t *testing.T) {
 func setupServer(
 	userRepo domain.UserRepository,
 	bookRepo bookDomain.BookRepository,
+	bookReviewRepo bookReviewDomain.BookReviewRepository,
 	crypto crypto.Crypto) *gin.Engine {
 	router := gin.Default()
 	finder := find.NewService(userRepo)
 	bookFinder := bookFind.NewService(bookRepo)
+	bookReviewFinder := bookReviewFind.NewService(bookReviewRepo)
 	creator := create.NewService(userRepo, crypto)
 	updater := update.NewService(userRepo)
 	deleter := delete.NewService(userRepo)
 	authLogin := login.NewService(userRepo, crypto)
-	RegisterRoutes(finder, bookFinder, creator, updater, deleter, authLogin, tokenParams, router)
+	RegisterRoutes(finder, bookFinder, bookReviewFinder, creator, updater, deleter, authLogin, tokenParams, router)
 	return router
 }
 
@@ -60,6 +65,7 @@ var _ = Describe("Server", func() {
 	var server *httptest.Server
 	var userRepo domain.UserRepository
 	var bookRepo bookDomain.BookRepository
+	var bookReviewRepo bookReviewDomain.BookReviewRepository
 	var cryptoRepo crypto.Crypto
 
 	dbHost := os.Getenv("DB_HOST")
@@ -73,8 +79,9 @@ var _ = Describe("Server", func() {
 	BeforeEach(func() {
 		userRepo = persistence.NewMongoUsersRepository(dbClient)
 		bookRepo = bookPersistence.NewInMemoryBookRepository()
+		bookReviewRepo = bookReviewPersistence.NewInMemoryBookReviewsRepository()
 		cryptoRepo = crypto.NewBcrypt()
-		server = httptest.NewServer(setupServer(userRepo, bookRepo, cryptoRepo))
+		server = httptest.NewServer(setupServer(userRepo, bookRepo, bookReviewRepo, cryptoRepo))
 	})
 
 	AfterEach(func() {
@@ -84,22 +91,22 @@ var _ = Describe("Server", func() {
 		server.Close()
 	})
 
-	Context("When GET request is sent to /users/", func() {
-		It("Returns null data if not exists users", func() {
-			resp, err := http.Get(server.URL + "/users/")
+	Context("When GET request is sent to /users", func() {
+		It("Returns empty array if not exists users", func() {
+			resp, err := http.Get(server.URL + "/users")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 		It("Returns an existing user", func() {
 			newUser, _ := domain.NewUser("6adbcea4-4fd4-45eb-8803-6c8474ac663a", "bob", "bob", "bob@mail.com", "bob123")
 			userRepo.Save(newUser)
 
-			resp, err := http.Get(server.URL + "/users/")
+			resp, err := http.Get(server.URL + "/users")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
@@ -107,6 +114,7 @@ var _ = Describe("Server", func() {
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
 
+			interests, _ := json.Marshal(newUser.Interests)
 			Expect(string(body)).To(MatchJSON(`
 			{
 				"data":
@@ -116,7 +124,8 @@ var _ = Describe("Server", func() {
 							"name":"` + newUser.Name + `",
 							"username":"` + newUser.Username + `",
 							"email":"` + newUser.Email + `",
-							"role":"` + newUser.Role + `" ,
+							"role":"` + newUser.Role + `",
+							"interests":` + string(interests) + `,
 							"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
@@ -137,6 +146,7 @@ var _ = Describe("Server", func() {
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
 
+			interests, _ := json.Marshal(newUser.Interests)
 			Expect(string(body)).To(MatchJSON(`
 			{
 				"data":
@@ -146,6 +156,7 @@ var _ = Describe("Server", func() {
 						"username":"` + newUser.Username + `",
 						"email":"` + newUser.Email + `",
 						"role":"` + newUser.Role + `" ,
+						"interests":` + string(interests) + `,
 						"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 					}
 			}`))

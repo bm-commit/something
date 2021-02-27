@@ -51,7 +51,7 @@ func LoginController(usecase login.Service, tokenParams *jwt.TokenParams) func(c
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"data":   user,
+			"user":   user,
 			"tokens": tokens,
 		})
 		return

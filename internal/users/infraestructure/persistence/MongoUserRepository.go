@@ -23,9 +23,16 @@ func NewMongoUsersRepository(m *mongo.Database) domain.UserRepository {
 	}
 }
 
-func (r *mongoRepository) Find() ([]*domain.User, error) {
+func (r *mongoRepository) Find(criteria *domain.UserCriteria) ([]*domain.User, error) {
+	findOptions := options.Find()
+	findOptions.SetSkip((criteria.Page - 1) * criteria.PerPage)
+	findOptions.SetLimit(criteria.PerPage)
+
 	var users []*domain.User
-	cur, err := r.con.Find(context.TODO(), bson.D{}, nil)
+
+	query := generateQueryWithCriteria(criteria)
+
+	cur, err := r.con.Find(context.TODO(), query, findOptions)
 	if err != nil {
 		log.Println(err)
 		return users, err
@@ -35,6 +42,19 @@ func (r *mongoRepository) Find() ([]*domain.User, error) {
 		return users, err
 	}
 	return users, nil
+}
+
+func generateQueryWithCriteria(criteria *domain.UserCriteria) bson.D {
+	query := bson.D{}
+	if criteria.Query != "" {
+		regex := primitive.Regex{Pattern: criteria.Query, Options: "i"}
+		orCondition := primitive.E{Key: "$or", Value: []interface{}{
+			bson.D{primitive.E{Key: "name", Value: regex}},
+			bson.D{primitive.E{Key: "username", Value: regex}},
+		}}
+		query = append(query, orCondition)
+	}
+	return query
 }
 
 func (r *mongoRepository) FindByID(id string) (*domain.User, error) {

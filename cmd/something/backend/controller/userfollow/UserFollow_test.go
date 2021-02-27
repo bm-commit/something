@@ -74,7 +74,7 @@ var _ = Describe("Server", func() {
 	})
 
 	Context("When GET request is sent to /users/:id/followers", func() {
-		It("Returns null data if not exists followers", func() {
+		It("Returns empty array if not exists followers", func() {
 			newUser, _ := userDomain.NewUser(
 				"8d4eb934-8116-4b2f-bd9d-2b6134a6a6f9",
 				"dante", "dante06", "dante@gmail.com",
@@ -88,7 +88,7 @@ var _ = Describe("Server", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 		It("Returns an existing follower", func() {
 			newUser, _ := userDomain.NewUser(
@@ -96,8 +96,13 @@ var _ = Describe("Server", func() {
 				"dante", "dante06", "dante@gmail.com",
 				"dante-secure-password")
 			userRepo.Save(newUser)
-			userFollow, _ := domain.NewUserFollow(
+			newUser2, _ := userDomain.NewUser(
 				"a6e31ea4-af01-4426-a89f-98a14cf2b077",
+				"dante", "dante06", "dante@gmail.com",
+				"dante-secure-password")
+			userRepo.Save(newUser2)
+			userFollow, _ := domain.NewUserFollow(
+				newUser2.ID,
 				newUser.ID)
 			userFollowRepo.Follow(userFollow)
 
@@ -114,9 +119,10 @@ var _ = Describe("Server", func() {
 				"data":
 					[
 						{
-							"from":"` + userFollow.From + `",
-							"to":"` + userFollow.To + `",
-							"created_on":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
+							"id":"` + newUser2.ID + `",
+							"name":"` + newUser2.Name + `",
+							"username":"` + newUser2.Username + `",
+							"follow_at":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
 			}`))
@@ -124,7 +130,7 @@ var _ = Describe("Server", func() {
 	})
 
 	Context("When GET request is sent to /users/:id/following", func() {
-		It("Returns null data if not exists following", func() {
+		It("Returns empty array if not exists following", func() {
 			newUser, _ := userDomain.NewUser(
 				"1b995593-812f-411e-ad6f-8bd4ff22fb98",
 				"dante", "dante06", "dante@gmail.com",
@@ -138,7 +144,7 @@ var _ = Describe("Server", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 		It("Returns an existing following", func() {
 			newUser, _ := userDomain.NewUser(
@@ -146,7 +152,12 @@ var _ = Describe("Server", func() {
 				"dante", "dante06", "dante@gmail.com",
 				"dante-secure-password")
 			userRepo.Save(newUser)
-			userFollow, _ := domain.NewUserFollow(newUser.ID, "4328edff-5422-46eb-b7d6-2b5bf89cb151")
+			newUser2, _ := userDomain.NewUser(
+				"4328edff-5422-46eb-b7d6-2b5bf89cb151",
+				"bob", "bo1", "bob@gmail.com",
+				"bob-secure-password")
+			userRepo.Save(newUser2)
+			userFollow, _ := domain.NewUserFollow(newUser.ID, newUser2.ID)
 			userFollowRepo.Follow(userFollow)
 
 			resp, err := http.Get(server.URL + "/users/" + newUser.ID + "/following")
@@ -162,9 +173,10 @@ var _ = Describe("Server", func() {
 				"data":
 					[
 						{
-							"from":"` + userFollow.From + `",
-							"to":"` + userFollow.To + `",
-							"created_on":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
+							"id":"` + newUser2.ID + `",
+							"name":"` + newUser2.Name + `",
+							"username":"` + newUser2.Username + `",
+							"follow_at":"` + userFollow.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 					]
 			}`))

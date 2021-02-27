@@ -5,9 +5,15 @@ import (
 	"something/internal/books/domain"
 )
 
+// PAGE Default pagination page
+const PAGE int = 1
+
+// PERPAGE Default page size (the number of items to return per page).
+const PERPAGE int = 50
+
 // Service ...
 type Service interface {
-	FindBooks() ([]*application.BookResponse, error)
+	FindBooks(criteria *Criteria) ([]*application.BookResponse, error)
 	FindBookByID(id string) (*application.BookResponse, error)
 }
 
@@ -20,8 +26,21 @@ func NewService(repository domain.BookRepository) Service {
 	return &service{repository: repository}
 }
 
-func (s *service) FindBooks() ([]*application.BookResponse, error) {
-	books, err := s.repository.Find()
+func (s *service) FindBooks(criteria *Criteria) ([]*application.BookResponse, error) {
+
+	if criteria.Page == 0 {
+		criteria.Page = PAGE
+	}
+	if criteria.PerPage == 0 || criteria.PerPage > 1000 {
+		criteria.PerPage = PERPAGE
+	}
+
+	newBookCriteria := domain.NewBookCriteria(
+		criteria.Page, criteria.PerPage, criteria.Query,
+		criteria.Genre, criteria.Author,
+	)
+
+	books, err := s.repository.Find(newBookCriteria)
 	if err != nil {
 		return nil, err
 	}

@@ -36,6 +36,7 @@ import (
 	userFollow "something/internal/userfollow/application/followers"
 	userFollowPersistance "something/internal/userfollow/infraestructure/persistence"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -74,6 +75,12 @@ func setupServer() *gin.Engine {
 
 	router.Use(gin.Recovery())
 
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowCredentials = true
+	corsConfig.AddAllowHeaders("authorization")
+	router.Use(cors.New(corsConfig))
+
 	// init database
 	dbHost := os.Getenv("DB_HOST")
 	dbUser := os.Getenv("DB_USER")
@@ -86,38 +93,42 @@ func setupServer() *gin.Engine {
 	// init crypto
 	cryptoRepo := crypto.NewBcrypt()
 
-	// Books
+	// Repositories
 	inMemoryBookRepo := bookPersistance.NewMongoBookRepository(dbClient)
-	bookFind := bookFinder.NewService(inMemoryBookRepo)
-	bookCreator := bookCreate.NewService(inMemoryBookRepo)
-	bookDeletor := bookDelete.NewService(inMemoryBookRepo)
-	bookUpdater := bookUpdate.NewService(inMemoryBookRepo)
-	books.RegisterRoutes(bookFind, bookCreator, bookUpdater, bookDeletor, tokenParams.AccessSecret, router)
-
-	// Book reviews
 	inMemoryBookReviewRepo := persistence.NewMongoBookReviewRepository(dbClient)
-	bookReviewFinder := find.NewService(inMemoryBookReviewRepo)
-	bookReviewCreator := create.NewService(inMemoryBookReviewRepo)
-	bookReviewUpdater := update.NewService(inMemoryBookReviewRepo)
-	bookReviewDelete := delete.NewService(inMemoryBookReviewRepo)
-	bookreviews.RegisterRoutes(bookReviewFinder, bookFind, bookReviewCreator, bookReviewUpdater, bookReviewDelete, tokenParams.AccessSecret, router)
-
-	// Users
 	inMemoryUserRepo := userPersistance.NewMongoUsersRepository(dbClient)
-	userFind := userFinder.NewService(inMemoryUserRepo)
-	userCreator := userCreate.NewService(inMemoryUserRepo, cryptoRepo)
-	userUpdater := userUpdate.NewService(inMemoryUserRepo)
-	userDeletor := userDelete.NewService(inMemoryUserRepo)
-	authLogin := login.NewService(inMemoryUserRepo, cryptoRepo)
-	users.RegisterRoutes(userFind, bookFind, userCreator, userUpdater, userDeletor, authLogin, tokenParams, router)
-
-	// Users followers
 	inMemoryUserFollowRepo := userFollowPersistance.NewMongoUserFollowRepository(dbClient)
-	userFollowFind := userFollowFinder.NewService(inMemoryUserFollowRepo)
-	userFollower := userFollow.NewService(inMemoryUserFollowRepo)
-	userfollow.RegisterRoutes(userFollowFind, userFind, userFollower, tokenParams, router)
 
-	// Health-check
+	// Finders
+	bookFind := bookFinder.NewService(inMemoryBookRepo)
+	bookReviewFinder := find.NewService(inMemoryBookReviewRepo)
+	userFind := userFinder.NewService(inMemoryUserRepo)
+	userFollowFind := userFollowFinder.NewService(inMemoryUserFollowRepo)
+
+	// Creators
+	bookCreator := bookCreate.NewService(inMemoryBookRepo)
+	bookReviewCreator := create.NewService(inMemoryBookReviewRepo)
+	userCreator := userCreate.NewService(inMemoryUserRepo, cryptoRepo)
+
+	// Updaters
+	bookUpdater := bookUpdate.NewService(inMemoryBookRepo)
+	bookReviewUpdater := update.NewService(inMemoryBookReviewRepo)
+	userUpdater := userUpdate.NewService(inMemoryUserRepo)
+	userFollower := userFollow.NewService(inMemoryUserFollowRepo)
+
+	// Deletors
+	bookReviewDelete := delete.NewService(inMemoryBookReviewRepo)
+	userDeletor := userDelete.NewService(inMemoryUserRepo)
+	bookDeletor := bookDelete.NewService(inMemoryBookRepo)
+
+	// Auth
+	authLogin := login.NewService(inMemoryUserRepo, cryptoRepo)
+
+	//Routes
+	books.RegisterRoutes(bookFind, bookReviewFinder, bookCreator, bookUpdater, bookDeletor, tokenParams.AccessSecret, router)
+	bookreviews.RegisterRoutes(bookReviewFinder, bookFind, userFind, bookReviewCreator, bookReviewUpdater, bookReviewDelete, tokenParams.AccessSecret, router)
+	users.RegisterRoutes(userFind, bookFind, bookReviewFinder, userCreator, userUpdater, userDeletor, authLogin, tokenParams, router)
+	userfollow.RegisterRoutes(userFollowFind, userFind, userFollower, tokenParams, router)
 	healthcheck.RegisterRoutes(router)
 
 	return router

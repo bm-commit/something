@@ -2,8 +2,10 @@ package bookreviews
 
 import (
 	"net/http"
+	"something/internal/bookreviews/application"
 	"something/internal/bookreviews/application/find"
 	bookFind "something/internal/books/application/find"
+	userFind "something/internal/users/application/find"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +16,11 @@ type bookURLParameter struct {
 }
 
 // GetBookReviewsController ...
-func GetBookReviewsController(finder find.Service, bookFinder bookFind.Service) func(c *gin.Context) {
+func GetBookReviewsController(
+	finder find.Service,
+	bookFinder bookFind.Service,
+	userFinder userFind.Service,
+) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var param bookURLParameter
 		if err := c.ShouldBindUri(&param); err != nil {
@@ -43,9 +49,21 @@ func GetBookReviewsController(finder find.Service, bookFinder bookFind.Service) 
 			})
 			return
 		}
+		getUserInfoReview(bookReviews, userFinder)
 		c.JSON(http.StatusOK, gin.H{
 			"data": bookReviews,
 		})
 		return
 	}
+}
+
+func getUserInfoReview(reviews []*application.BookReviewResponse, userFinder userFind.Service) []*application.BookReviewResponse {
+	for _, review := range reviews {
+		user, err := userFinder.FindUserByID(review.User.ID)
+		if err == nil {
+			review.User.Name = user.Name
+			review.User.Username = user.Username
+		}
+	}
+	return reviews
 }

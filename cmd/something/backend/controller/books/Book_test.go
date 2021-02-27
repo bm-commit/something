@@ -9,6 +9,9 @@ import (
 	"net/http/httptest"
 	"os"
 	"something/config"
+	bookReviewFinder "something/internal/bookreviews/application/find"
+	bookReviewDomain "something/internal/bookreviews/domain"
+	bookReviewPersistence "something/internal/bookreviews/infraestructure/persistence"
 	"something/internal/books/application/create"
 	"something/internal/books/application/delete"
 	"something/internal/books/application/find"
@@ -34,13 +37,14 @@ var tokenParams *jwt.TokenParams = &jwt.TokenParams{
 
 const userID = "c6facd8d-17f4-43bd-9d90-f4fb024fa2f9"
 
-func setupServer(bookRepo domain.BookRepository) *gin.Engine {
+func setupServer(bookRepo domain.BookRepository, bookReviewRepo bookReviewDomain.BookReviewRepository) *gin.Engine {
 	router := gin.Default()
 	finder := find.NewService(bookRepo)
+	reviewFinder := bookReviewFinder.NewService(bookReviewRepo)
 	creator := create.NewService(bookRepo)
 	updater := update.NewService(bookRepo)
 	deletor := delete.NewService(bookRepo)
-	RegisterRoutes(finder, creator, updater, deletor, tokenParams.AccessSecret, router)
+	RegisterRoutes(finder, reviewFinder, creator, updater, deletor, tokenParams.AccessSecret, router)
 	return router
 }
 
@@ -52,6 +56,7 @@ func TestBookCheck(t *testing.T) {
 var _ = Describe("Server", func() {
 	var server *httptest.Server
 	var bookRepo domain.BookRepository
+	var bookReviewRepo bookReviewDomain.BookReviewRepository
 
 	dbHost := os.Getenv("DB_HOST")
 	dbUser := os.Getenv("DB_USER")
@@ -63,7 +68,8 @@ var _ = Describe("Server", func() {
 
 	BeforeEach(func() {
 		bookRepo = persistence.NewMongoBookRepository(dbClient)
-		server = httptest.NewServer(setupServer(bookRepo))
+		bookReviewRepo = bookReviewPersistence.NewMongoBookReviewRepository(dbClient)
+		server = httptest.NewServer(setupServer(bookRepo, bookReviewRepo))
 	})
 
 	AfterEach(func() {
@@ -73,23 +79,23 @@ var _ = Describe("Server", func() {
 		server.Close()
 	})
 
-	Context("When GET request is sent to /books/", func() {
-		It("Returns null data if not exists books", func() {
-			resp, err := http.Get(server.URL + "/books/")
+	Context("When GET request is sent to /books", func() {
+		It("Returns empty array if not exists books", func() {
+			resp, err := http.Get(server.URL + "/books")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
 			body, err := ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(body)).To(MatchJSON(`{"data":null}`))
+			Expect(string(body)).To(MatchJSON(`{"data":[]}`))
 		})
 
 		It("Returns an existing book", func() {
 			newBook, _ := domain.NewBook("4c881080-710f-458a-8ec3-058154c47794", "title", "desc", "author", "genre", 1)
 			bookRepo.Save(newBook)
 
-			resp, err := http.Get(server.URL + "/books/")
+			resp, err := http.Get(server.URL + "/books")
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
 
@@ -108,6 +114,7 @@ var _ = Describe("Server", func() {
 								"author":"` + newBook.Author + `",
 								"genre":"` + newBook.Genre + `",
 								"pages":` + strconv.Itoa(newBook.Pages) + ` ,
+								"rating": 0,
 								"created_on":"` + newBook.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 							}
 						]
@@ -137,6 +144,7 @@ var _ = Describe("Server", func() {
 							"author":"` + newBook.Author + `",
 							"genre":"` + newBook.Genre + `",
 							"pages":` + strconv.Itoa(newBook.Pages) + ` ,
+							"rating": 0,
 							"created_on":"` + newBook.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
 						}
 				}`))

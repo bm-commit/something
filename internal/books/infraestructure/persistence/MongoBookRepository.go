@@ -23,9 +23,16 @@ func NewMongoBookRepository(m *mongo.Database) domain.BookRepository {
 	}
 }
 
-func (r *mongoRepository) Find() ([]*domain.Book, error) {
+func (r *mongoRepository) Find(criteria *domain.BookCriteria) ([]*domain.Book, error) {
+	findOptions := options.Find()
+	findOptions.SetSkip((criteria.Page - 1) * criteria.PerPage)
+	findOptions.SetLimit(criteria.PerPage)
+
 	var books []*domain.Book
-	cur, err := r.con.Find(context.TODO(), bson.D{}, nil)
+
+	query := generateQueryWithCriteria(criteria)
+
+	cur, err := r.con.Find(context.TODO(), query, findOptions)
 	if err != nil {
 		log.Println(err)
 		return books, err
@@ -35,6 +42,26 @@ func (r *mongoRepository) Find() ([]*domain.Book, error) {
 		return books, err
 	}
 	return books, nil
+}
+
+func generateQueryWithCriteria(criteria *domain.BookCriteria) bson.D {
+	query := bson.D{}
+	if criteria.Query != "" {
+		regex := primitive.Regex{Pattern: criteria.Query, Options: "i"}
+		condition := primitive.E{Key: "title", Value: regex}
+		query = append(query, condition)
+	}
+	if criteria.Author != "" {
+		regex := primitive.Regex{Pattern: criteria.Author, Options: "i"}
+		condition := primitive.E{Key: "author", Value: regex}
+		query = append(query, condition)
+	}
+	if criteria.Genre != "" {
+		regex := primitive.Regex{Pattern: criteria.Genre, Options: "i"}
+		condition := primitive.E{Key: "genre", Value: regex}
+		query = append(query, condition)
+	}
+	return query
 }
 
 func (r *mongoRepository) FindByID(id string) (*domain.Book, error) {

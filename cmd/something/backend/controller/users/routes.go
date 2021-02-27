@@ -2,6 +2,7 @@ package users
 
 import (
 	m "something/cmd/something/backend/controller/middlewares"
+	bookReviewFinder "something/internal/bookreviews/application/find"
 	bookFind "something/internal/books/application/find"
 	"something/internal/users/application/create"
 	"something/internal/users/application/delete"
@@ -17,6 +18,7 @@ import (
 func RegisterRoutes(
 	finder find.Service,
 	bookFinder bookFind.Service,
+	reviewFinder bookReviewFinder.Service,
 	creator create.Service,
 	updater update.Service,
 	deleter delete.Service,
@@ -25,7 +27,7 @@ func RegisterRoutes(
 	router *gin.Engine) {
 	usersRouter := router.Group("/users")
 	{
-		usersRouter.GET("/", GetUsersController(finder))
+		usersRouter.GET("", GetUsersController(finder, bookFinder, reviewFinder))
 		usersRouter.GET("/:id", GetUserController(finder))
 		usersRouter.PUT("/:id", RegisterController(creator))
 		usersRouter.PATCH("/:id", m.TokenAuthMiddleware(tokenParams.AccessSecret), PatchController(updater))

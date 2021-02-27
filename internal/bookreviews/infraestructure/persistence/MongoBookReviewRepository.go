@@ -26,7 +26,7 @@ func NewMongoBookReviewRepository(m *mongo.Database) domain.BookReviewRepository
 func (r *mongoRepository) Find(bookID string) ([]*domain.BookReview, error) {
 	var bookReviews []*domain.BookReview
 
-	cur, err := r.con.Find(context.TODO(), bson.D{}, nil)
+	cur, err := r.con.Find(context.TODO(), bson.D{primitive.E{Key: "bookid", Value: bookID}}, nil)
 	if err != nil {
 		log.Println(err)
 		return bookReviews, err
@@ -51,6 +51,42 @@ func (r *mongoRepository) FindByID(id string) (*domain.BookReview, error) {
 		return nil, errors.New("book review not found")
 	}
 	return result, nil
+}
+
+func (r *mongoRepository) FindReviews(criteria *domain.BookReviewCriteria) ([]*domain.BookReviewShort, error) {
+
+	var bookReviews []*domain.BookReviewShort
+
+	sortStage := bson.D{{"$sort", bson.D{{"rating", criteria.Sort}}}}
+	groupStage := bson.D{
+		{"$group",
+			bson.D{
+				{"_id", "$bookid"},
+				{"total",
+					bson.D{{"$sum", 1}}},
+				{"rating", bson.D{{"$avg", "$rating"}}},
+			},
+		}}
+	limit := bson.D{{"$limit", 25}}
+
+	cur, err := r.con.Aggregate(
+		context.TODO(),
+		mongo.Pipeline{
+			sortStage,
+			groupStage,
+			limit,
+		})
+	if err != nil {
+		log.Println(err)
+		return bookReviews, err
+	}
+
+	if err = cur.All(context.TODO(), &bookReviews); err != nil {
+		log.Println(err)
+		return bookReviews, err
+	}
+
+	return bookReviews, nil
 }
 
 func (r *mongoRepository) Update(bookReview *domain.BookReview) error {

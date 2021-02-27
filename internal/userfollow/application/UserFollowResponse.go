@@ -12,6 +12,14 @@ type UserFollowResponse struct {
 	CreatedOn time.Time `json:"created_on"`
 }
 
+// UserFollowResponseLong allow return user follow details
+type UserFollowResponseLong struct {
+	ID       string    `json:"id"`
+	Name     string    `json:"name"`
+	Username string    `json:"username"`
+	FollowAt time.Time `json:"follow_at"`
+}
+
 // NewFollowResponse ...
 func newFollowResponse(uf *domain.UserFollow) *UserFollowResponse {
 	return &UserFollowResponse{
@@ -23,7 +31,7 @@ func newFollowResponse(uf *domain.UserFollow) *UserFollowResponse {
 
 // NewFollowsResponse ...
 func NewFollowsResponse(follows []*domain.UserFollow) []*UserFollowResponse {
-	var userFollowResponse []*UserFollowResponse
+	userFollowResponse := []*UserFollowResponse{}
 	for _, follow := range follows {
 		userFollowResponse = append(userFollowResponse, newFollowResponse(follow))
 	}

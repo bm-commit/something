@@ -42,6 +42,10 @@ func (r *repository) FindByID(id string) (*domain.BookReview, error) {
 	return bookReview, nil
 }
 
+func (r *repository) FindReviews(criteria *domain.BookReviewCriteria) ([]*domain.BookReviewShort, error) {
+	return nil, nil
+}
+
 func (r *repository) Update(bookReview *domain.BookReview) error {
 	r.bookReviews[bookReview.ID] = bookReview
 	return nil

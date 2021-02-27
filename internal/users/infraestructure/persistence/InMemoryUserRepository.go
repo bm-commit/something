@@ -21,7 +21,7 @@ func NewInMemoryUserRepository() domain.UserRepository {
 	return userInstance
 }
 
-func (r *repository) Find() ([]*domain.User, error) {
+func (r *repository) Find(criteria *domain.UserCriteria) ([]*domain.User, error) {
 	var users []*domain.User
 	for _, user := range r.users {
 		users = append(users, user)
