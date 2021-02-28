@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"log"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,7 +14,13 @@ import (
 func ConnectBD(dbUser, dbPass, dbHost string) *mongo.Client {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://"+dbUser+":"+dbPass+"@"+dbHost))
+
+	connectionStr := "mongodb+srv://" + dbUser + ":" + dbPass + "@" + dbHost
+	if strings.Contains(dbHost, "localhost") {
+		connectionStr = "mongodb://" + dbUser + ":" + dbPass + "@" + dbHost
+	}
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionStr))
 	defer cancel()
 	if err != nil {
 		log.Fatalf("Error connecting to DB: %s", err.Error())
