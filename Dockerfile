@@ -13,14 +13,6 @@ ENV GO111MODULE=on \
     GOOS=linux \
     GOARCH=amd64
 
-ENV PORT ""
-ENV ACCESS_SECRET ""
-ENV REFRESH_SECRET ""
-ENV DB_HOST ""
-ENV DB_USER ""
-ENV DB_PASS ""
-ENV DB_NAME ""
-
 RUN go build -ldflags="-w -s" -o something_server cmd/something/backend/main.go
 
 FROM scratch
