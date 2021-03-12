@@ -123,7 +123,6 @@ var _ = Describe("Server", func() {
 							"id":"` + newUser.ID + `",
 							"name":"` + newUser.Name + `",
 							"username":"` + newUser.Username + `",
-							"email":"` + newUser.Email + `",
 							"role":"` + newUser.Role + `",
 							"interests":` + string(interests) + `,
 							"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
@@ -154,7 +153,6 @@ var _ = Describe("Server", func() {
 						"id":"` + newUser.ID + `",
 						"name":"` + newUser.Name + `",
 						"username":"` + newUser.Username + `",
-						"email":"` + newUser.Email + `",
 						"role":"` + newUser.Role + `" ,
 						"interests":` + string(interests) + `,
 						"created_on":"` + newUser.CreatedOn.Format("2006-01-02T15:04:05.999Z07:00") + `"
